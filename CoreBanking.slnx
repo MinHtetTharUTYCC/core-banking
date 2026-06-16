@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CoreBanking.Api/CoreBanking.Api.csproj" />
+    <Project Path="src/CoreBanking.Application/CoreBanking.Application.csproj" />
+    <Project Path="src/CoreBanking.Domain/CoreBanking.Domain.csproj" />
+    <Project Path="src/CoreBanking.Infrastructure/CoreBanking.Infrastructure.csproj" />
+    <Project Path="src/CoreBanking.Shared/CoreBanking.Shared.csproj" />
+  </Folder>
+</Solution>
