@@ -1,4 +1,4 @@
-Run git diff HEAD and git status, analyze all changes, then generate a single git command in this exact format:
+Run git diff HEAD and git status, analyze all changes, then run a single git command in this exact format:
 git add . && git commit -m "<type>: <short summary>
 
 - <specific change 1>
