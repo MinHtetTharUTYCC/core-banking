@@ -30,7 +30,11 @@ public class AccountsController : ControllerBase
 
         var id = await _mediator.Send(command);
 
-        // Return the created account's ID in the response + Header with the location of the new resource + 201 Created status code
+        // CreatedAtAction overloads:
+        // 1. CreatedAtAction(actionName, value)
+        // 2. CreatedAtAction(actionName, routeValues, value)
+        // 3. CreatedAtAction(actionName, controllerName, routeValues, value)
+        // Returns 201 Created + Location header pointing to GetById + response body { id }
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 

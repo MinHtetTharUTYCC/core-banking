@@ -30,15 +30,15 @@ public class AccountRepository : IAccountRepository
         return await _context.Accounts.ToListAsync();
     }
     
-    public async Task AddAsync(Account account)
+    public async Task AddAsync(Account account, CancellationToken cancellationToken = default)
     {
-        await _context.Accounts.AddAsync(account);
-        await _context.SaveChangesAsync();
+        await _context.Accounts.AddAsync(account, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
     
-    public async Task UpdateAsync(Account account)
+    public async Task UpdateAsync(Account account, CancellationToken cancellationToken = default)
     {
         _context.Accounts.Update(account);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

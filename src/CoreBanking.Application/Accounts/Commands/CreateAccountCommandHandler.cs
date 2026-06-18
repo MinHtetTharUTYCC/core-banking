@@ -20,7 +20,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
             request.AccountType,
             request.Currency);
         
-        await _repository.AddAsync(account);
+        await _repository.AddAsync(account, cancellationToken);
         return account.Id;
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Domain.Common;
 using CoreBanking.Domain.Entities;
 using CoreBanking.Domain.ValueObjects;
 
@@ -8,10 +9,38 @@ namespace CoreBanking.Infrastructure.Persistence;
 
 public class BankingDbContext : DbContext, IApplicationDbContext
 {
-    public BankingDbContext(DbContextOptions<BankingDbContext> options) : base(options) { }
+    private readonly IDomainEventDispatcher _dispatcher;
+    
+    public BankingDbContext(DbContextOptions<BankingDbContext> options, IDomainEventDispatcher dispatcher) 
+        : base(options) 
+    { 
+        _dispatcher = dispatcher;
+    }
     
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entities = ChangeTracker.Entries<BaseEntity>()
+            .Select(e => e.Entity)
+            .Where(e => e.DomainEvents.Any())
+            .ToList();
+
+        var domainEvents = entities
+            .SelectMany(e => e.DomainEvents)
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        foreach (var entity in entities)
+            entity.ClearDomainEvents();
+
+        foreach (var domainEvent in domainEvents)
+            await _dispatcher.DispatchAsync(domainEvent, cancellationToken);
+
+        return result;
+    }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

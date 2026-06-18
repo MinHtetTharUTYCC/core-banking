@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Infrastructure.Persistence;
 using CoreBanking.Infrastructure.Repositories;
+using CoreBanking.Infrastructure.Services;
 
 namespace CoreBanking.Infrastructure;
 
@@ -17,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<BankingDbContext>());
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         
         return services;
     }
