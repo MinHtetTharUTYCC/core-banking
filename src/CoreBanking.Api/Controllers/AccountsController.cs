@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using CoreBanking.Application.Accounts.Commands;
 using CoreBanking.Application.Accounts.Queries;
 using CoreBanking.Domain.Enums;
-using System.Diagnostics.CodeAnalysis;
 
 namespace CoreBanking.Api.Controllers;
 
@@ -35,7 +34,6 @@ public class AccountsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
-    MaybeNullWhenAttribute 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -105,7 +103,7 @@ public record CreateAccountRequest(
     AccountType AccountType,
     Currency Currency);
 
-public recored CreateAccountRequestCopy(
+public record CreateAccountRequestCopy(
     string OwnerName,
     string OwnerEmail,
     AccountType AccountType,
