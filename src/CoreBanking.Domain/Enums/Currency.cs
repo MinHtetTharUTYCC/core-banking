@@ -5,5 +5,6 @@ public enum Currency
     USD = 0,
     EUR = 1,
     GBP = 2,
-    MMK = 3
+    THB = 3,
+    MMK = 4
 }
