@@ -63,6 +63,21 @@ public class Account : BaseEntity
         
         AddDomainEvent(new MoneyDepositedEvent(this, amount));
     }
+
+    public void DepositCopy(decimal Amount)
+    {
+        if(Status != AccountStatus.Active)
+            throw new InvalidOperationException("Account must be active to deposit");
+
+        if(Amount <= 0)
+            throw new ArgumentException("Deposit amount must be positive");
+
+        val depositMoney = new Money(Amount, Balance.Currency);
+        Balance = Balance.Add(depositMoney);
+        UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new MoneyDepositedEvent(this, Amount));)
+    }
     
     public void Withdraw(decimal amount)
     {
@@ -109,6 +124,24 @@ public class Account : BaseEntity
         toAccount.Deposit(amount);
         
         AddDomainEvent(new MoneyTransferredEvent(this, toAccount, amount));
+    }
+
+    public void TransferCopy(Account ToAccount,decimal Amount)
+    {
+        if (Status != AccountStatus.Active)
+            throw new InvalidOperationException("Source account must be active");
+
+        if (toAccount.Status != AccountStatus.Active)
+            throw new InvalidOperationException("Destination account must be active");
+
+        if (Balance.Currency != toAccount.Balance.Currency)
+            throw new InvalidOperationException("Cannot transfer between different currencies");
+
+        Withdraw(Amount);
+        ToAccount.Deposit(Amount);
+
+        AddDomainEvent( new MoneyTransferredEvent(this, ToAccount, Amount));
+
     }
 }
 

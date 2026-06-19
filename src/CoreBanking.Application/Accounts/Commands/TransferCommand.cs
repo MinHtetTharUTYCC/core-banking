@@ -8,3 +8,10 @@ public record TransferCommand : IRequest<bool>
     public Guid ToAccountId { get; init; }
     public decimal Amount { get; init; }
 }
+
+public record TransfterCommandCopy: IRequest<bool>
+{
+    public Guid FromAccountId { get; init; }
+    public Guid ToAccountId { get; init; }
+    public Guid Amount { get; init; }
+}
