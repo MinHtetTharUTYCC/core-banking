@@ -33,7 +33,7 @@ public class GetAccountByIdQueryHandler : IRequestHandler<GetAccountByIdQuery, A
     }
 }
 
-public class GetAccountByIdQueryHandlerCopy: IRequestHandler<GetAccountByIdQuery,AccontDto?>
+public class GetAccountByIdQueryHandlerCopy: IRequestHandler<GetAccountByIdQuery,AccountDto?>
 {
     private readonly IAccountRepository _repository;
 
@@ -50,7 +50,7 @@ public class GetAccountByIdQueryHandlerCopy: IRequestHandler<GetAccountByIdQuery
         return new AccountDto
         {
             Id = account.Id,
-            AccountNumber= account.AccountNumber.Value, //AccountNumber is a value object, so we need to access the Value property
+            AccountNumber = account.AccountNumber.Value, //AccountNumber is a value object, so we need to access the Value property
             OwnerName = account.OwnerName,
             OwnerEmail = account.OwnerEmail,
             AccountType = account.AccountType.ToString(), // enum to string
@@ -58,6 +58,6 @@ public class GetAccountByIdQueryHandlerCopy: IRequestHandler<GetAccountByIdQuery
             Currency = account.Balance.Currency.ToString(), //enum to string
             Status = account.Status.ToString(), //enum to string
             CreatedAt = account.CreatedAt
-        }
+        };
     }
 }
