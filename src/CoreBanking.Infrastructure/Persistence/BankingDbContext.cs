@@ -69,6 +69,12 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasMaxLength(200)
             .IsRequired();
         
+        builder.OwnsOne(a => a.Balance, b =>
+        {
+            b.Property(m => m.Amount).HasColumnName("BalanceAmount");
+            b.Property(m => m.Currency).HasColumnName("BalanceCurrency");
+        });
+
         builder.Ignore(a => a.Transactions);
         builder.Ignore(a => a.DomainEvents);
         
@@ -83,15 +89,12 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.HasKey(t => t.Id);
         
         builder.Property(t => t.Amount)
-            .HasPrecision(18, 2)
             .IsRequired();
         
         builder.Property(t => t.BalanceBefore)
-            .HasPrecision(18, 2)
             .IsRequired();
         
         builder.Property(t => t.BalanceAfter)
-            .HasPrecision(18, 2)
             .IsRequired();
         
         builder.Property(t => t.Description)

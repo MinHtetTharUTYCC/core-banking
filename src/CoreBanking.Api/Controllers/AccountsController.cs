@@ -49,6 +49,17 @@ public class AccountsController : ControllerBase
         
         return Ok(result);
     }
+
+    [HttpGet("get-by-id-copy/{id:guid}")]
+    public async Task<IActionResult> GetByIdCopy(Guid id)
+    {
+        var query = new GetAccountByIdQuery { id = id };
+        var result = await _mediator.Send(query);
+
+        if(result == null)
+            return NotFound();
+    }
+
     
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -57,7 +68,16 @@ public class AccountsController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
-    
+
+
+    [HttpGet("get-all-copy/{id:guid}")]
+    public async Task<IActionResult> GetAllCopy()
+    {
+        var query = new GetAllAccountsQuery();
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
     [HttpPost("{id:guid}/deposit")]
     public async Task<IActionResult> Deposit(Guid id, [FromBody] DepositRequest request)
     {
@@ -102,12 +122,6 @@ public class AccountsController : ControllerBase
 }
 
 public record CreateAccountRequest(
-    string OwnerName,
-    string OwnerEmail,
-    AccountType AccountType,
-    Currency Currency);
-
-public record CreateAccountRequestCopy(
     string OwnerName,
     string OwnerEmail,
     AccountType AccountType,
