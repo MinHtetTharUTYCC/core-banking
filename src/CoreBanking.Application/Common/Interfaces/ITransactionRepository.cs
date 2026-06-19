@@ -1,3 +1,5 @@
+using CoreBanking.Application.Common.Models;
+using CoreBanking.Application.Transactions.Queries;
 using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Application.Common.Interfaces;
@@ -5,7 +7,7 @@ namespace CoreBanking.Application.Common.Interfaces;
 public interface ITransactionRepository
 {
     Task<Transaction?> GetByIdAsync(Guid id);
-    Task<List<Transaction>> GetByAccountIdAsync(Guid accountId);
-    Task<List<Transaction>> GetAllAsync();
+    Task<PaginatedResult<Transaction>> GetAllAsync(TransactionSortOrder sortBy, int page, int pageSize);
+    Task<PaginatedResult<Transaction>> GetByAccountIdAsync(Guid accountId, TransactionSortOrder sortBy, int page, int pageSize);
     Task AddAsync(Transaction transaction);
 }

@@ -18,6 +18,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddMediatR(cfg => 
     cfg.RegisterServicesFromAssembly(typeof(CreateAccountCommand).Assembly));
 
+builder.Services.AddValidatorsFromAssembly(typeof(CreateAccountCommand).Assembly);
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 

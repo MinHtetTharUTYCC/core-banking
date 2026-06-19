@@ -64,21 +64,6 @@ public class Account : BaseEntity
         AddDomainEvent(new MoneyDepositedEvent(this, amount));
     }
 
-    public void DepositCopy(decimal Amount)
-    {
-        if(Status != AccountStatus.Active)
-            throw new InvalidOperationException("Account must be active to deposit");
-
-        if(Amount <= 0)
-            throw new ArgumentException("Deposit amount must be positive");
-
-        val depositMoney = new Money(Amount, Balance.Currency);
-        Balance = Balance.Add(depositMoney);
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new MoneyDepositedEvent(this, Amount));)
-    }
-    
     public void Withdraw(decimal amount)
     {
         if (Status != AccountStatus.Active)
@@ -94,21 +79,6 @@ public class Account : BaseEntity
         AddDomainEvent(new MoneyWithdrawnEvent(this, amount));
     }
 
-    public void WithdrawCopy(decimal Amount)
-    {
-        if (Status != AccountStatus.Active)
-            throw new InvalidOperationException("Account must be active to withdraw");
-
-        if (Amount <= 0)
-            throw new ArgumentException("Withdrawal amount must be positive");
-
-        var withdrawalMoney = new Money(amount, Balance.Currency);
-        Balance = Balance.Subtract(withdrawalMoney);
-        UpdatedAt = DateTime.UtcNow;
-
-        AddDomainEvent(new MoneyWithdrawnEvent(this, amount));
-    }
-    
     public void Transfer(Account toAccount, decimal amount)
     {
         if (Status != AccountStatus.Active)
@@ -126,23 +96,6 @@ public class Account : BaseEntity
         AddDomainEvent(new MoneyTransferredEvent(this, toAccount, amount));
     }
 
-    public void TransferCopy(Account ToAccount,decimal Amount)
-    {
-        if (Status != AccountStatus.Active)
-            throw new InvalidOperationException("Source account must be active");
-
-        if (toAccount.Status != AccountStatus.Active)
-            throw new InvalidOperationException("Destination account must be active");
-
-        if (Balance.Currency != toAccount.Balance.Currency)
-            throw new InvalidOperationException("Cannot transfer between different currencies");
-
-        Withdraw(Amount);
-        ToAccount.Deposit(Amount);
-
-        AddDomainEvent( new MoneyTransferredEvent(this, ToAccount, Amount));
-
-    }
 }
 
 public enum AccountStatus
