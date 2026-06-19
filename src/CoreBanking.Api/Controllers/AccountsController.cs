@@ -53,11 +53,13 @@ public class AccountsController : ControllerBase
     [HttpGet("get-by-id-copy/{id:guid}")]
     public async Task<IActionResult> GetByIdCopy(Guid id)
     {
-        var query = new GetAccountByIdQuery { id = id };
+        var query = new GetAccountByIdQuery { Id = id };
         var result = await _mediator.Send(query);
 
         if(result == null)
             return NotFound();
+
+        return Ok(result);
     }
 
     
@@ -69,8 +71,7 @@ public class AccountsController : ControllerBase
         return Ok(result);
     }
 
-
-    [HttpGet("get-all-copy/{id:guid}")]
+    [HttpGet("get-all-copy")]
     public async Task<IActionResult> GetAllCopy()
     {
         var query = new GetAllAccountsQuery();
@@ -89,6 +90,17 @@ public class AccountsController : ControllerBase
         
         return Ok(new { message = "Deposit successful" });
     }
+
+    [HttpPost("{id:guid}/deposit-copy")]
+    public async Task<IActionResult> DepositCopy(Guid id, [FromBody] DepositRequest request)
+    {
+        var command = new DepositCommand { AccountId = id,Amount = request.Amount }
+        var result = await _mediator.Send(command);
+
+        if(!result) return NotFound();
+
+        return Ok(new { message = "Deposit Successful" });
+    }
     
     [HttpPost("{id:guid}/withdraw")]
     public async Task<IActionResult> Withdraw(Guid id, [FromBody] WithdrawRequest request)
@@ -100,6 +112,17 @@ public class AccountsController : ControllerBase
             return NotFound();
         
         return Ok(new { message = "Withdrawal successful" });
+    }
+
+    [HttpPost("{id:guid}/withdraw-copy")]
+    public async Task<IActionResult> WithdrawCopy(Guid id, [FromBody] WithdrawRequest request)
+    {
+        var command = new WithdrawCommand( GetAccountByIdQuery: id,Amount = request.Amount);
+        var result = await _mediator.Send(command);
+
+        if(! result) return NotFound();
+
+        reutrn Ok(new {message = "Withdrawal Successful" });
     }
     
     [HttpPost("transfer")]

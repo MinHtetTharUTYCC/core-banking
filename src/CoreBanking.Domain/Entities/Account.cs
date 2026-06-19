@@ -78,6 +78,21 @@ public class Account : BaseEntity
         
         AddDomainEvent(new MoneyWithdrawnEvent(this, amount));
     }
+
+    public void WithdrawCopy(decimal Amount)
+    {
+        if (Status != AccountStatus.Active)
+            throw new InvalidOperationException("Account must be active to withdraw");
+
+        if (Amount <= 0)
+            throw new ArgumentException("Withdrawal amount must be positive");
+
+        var withdrawalMoney = new Money(amount, Balance.Currency);
+        Balance = Balance.Subtract(withdrawalMoney);
+        UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new MoneyWithdrawnEvent(this, amount));
+    }
     
     public void Transfer(Account toAccount, decimal amount)
     {
