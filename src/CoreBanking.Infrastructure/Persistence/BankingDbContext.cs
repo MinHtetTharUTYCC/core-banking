@@ -19,6 +19,7 @@ public class BankingDbContext : DbContext, IApplicationDbContext
     
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<Loan> Loans => Set<Loan>();
     
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -114,5 +115,55 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .OnDelete(DeleteBehavior.Restrict);
         
         builder.HasQueryFilter(t => !t.IsDeleted);
+    }
+}
+
+public class LoanConfiguration : IEntityTypeConfiguration<Loan>
+{
+    public void Configure(EntityTypeBuilder<Loan> builder)
+    {
+        builder.HasKey(l => l.Id);
+
+        builder.Property(l => l.LoanNumber)
+            .HasConversion(
+                v => v.Value,
+                v => new LoanNumber(v))
+            .HasMaxLength(12)
+            .IsRequired();
+
+        builder.Property(l => l.InterestRate)
+            .HasPrecision(5, 2)
+            .IsRequired();
+
+        builder.Property(l => l.TermMonths)
+            .IsRequired();
+
+        builder.Property(l => l.MonthlyPayment)
+            .HasPrecision(18, 2)
+            .IsRequired();
+
+        builder.OwnsOne(l => l.PrincipalAmount, b =>
+        {
+            b.Property(m => m.Amount).HasColumnName("PrincipalAmount");
+            b.Property(m => m.Currency).HasColumnName("PrincipalCurrency");
+        });
+
+        builder.OwnsOne(l => l.OutstandingBalance, b =>
+        {
+            b.Property(m => m.Amount).HasColumnName("OutstandingAmount");
+            b.Property(m => m.Currency).HasColumnName("OutstandingCurrency");
+        });
+
+        builder.Property(l => l.RejectionReason)
+            .HasMaxLength(500);
+
+        builder.HasOne(l => l.Account)
+            .WithMany()
+            .HasForeignKey(l => l.AccountId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Ignore(l => l.DomainEvents);
+
+        builder.HasQueryFilter(l => !l.IsDeleted);
     }
 }

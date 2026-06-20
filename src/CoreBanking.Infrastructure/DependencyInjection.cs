@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<BankingDbContext>());
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<ILoanRepository, LoanRepository>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         
         return services;

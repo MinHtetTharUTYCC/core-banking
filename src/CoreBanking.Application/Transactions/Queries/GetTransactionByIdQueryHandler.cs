@@ -1,6 +1,6 @@
 using MediatR;
 using CoreBanking.Application.Common.Interfaces;
-using Domain.Entities;
+using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Application.Transactions.Queries;
 

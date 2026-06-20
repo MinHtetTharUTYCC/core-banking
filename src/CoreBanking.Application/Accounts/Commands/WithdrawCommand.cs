@@ -7,10 +7,3 @@ public record WithdrawCommand : IRequest<bool>
     public Guid AccountId { get; init; }
     public decimal Amount { get; init; }
 }
-
-
-public record WithdrawCommandCopy : IRequest<bool>
-{
-    public Guid AccountId { get; init; }
-    public decimal Amount { get; init; }
-}
