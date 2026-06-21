@@ -17,7 +17,25 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Description = "Enter your JWT token"
+    });
+    options.AddSecurityRequirement(doc => new Microsoft.OpenApi.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer"),
+            new List<string>()
+        }
+    });
+});
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(CreateAccountCommand).Assembly));
@@ -48,6 +66,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -63,11 +91,10 @@ using (var scope = app.Services.CreateScope())
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseCors();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseAuthorization();
