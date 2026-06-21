@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CoreBanking.Api.Models;
 using CoreBanking.Application.Loans.Commands;
@@ -8,6 +9,7 @@ namespace CoreBanking.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class LoansController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -74,6 +76,7 @@ public class LoansController : ControllerBase
     }
 
     [HttpPost("{id:guid}/approve")]
+    [Authorize(Roles = "Admin,Officer")]
     public async Task<IActionResult> Approve(Guid id)
     {
         var command = new ApproveLoanCommand { LoanId = id };
@@ -86,6 +89,7 @@ public class LoansController : ControllerBase
     }
 
     [HttpPost("{id:guid}/disburse")]
+    [Authorize(Roles = "Admin,Officer")]
     public async Task<IActionResult> Disburse(Guid id)
     {
         var command = new DisburseLoanCommand { LoanId = id };
