@@ -4,7 +4,7 @@ using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Application.Transactions.Queries;
 
-public class GetTransactionByIdQueryHandler : IRequestHandler<GetTransactionByIdQuery, TransactionDto?>
+public class GetTransactionByIdQueryHandler : IRequestHandler<GetTransactionByIdQuery, TransactionDto>
 {
     private readonly ITransactionRepository _repository;
 
@@ -13,11 +13,11 @@ public class GetTransactionByIdQueryHandler : IRequestHandler<GetTransactionById
         _repository = repository;
     }
 
-    public async Task<TransactionDto?> Handle(GetTransactionByIdQuery request, CancellationToken cancellationToken)
+    public async Task<TransactionDto> Handle(GetTransactionByIdQuery request, CancellationToken cancellationToken)
     {
         var transaction = await _repository.GetByIdAsync(request.Id);
         if (transaction == null)
-            return null;
+            throw new KeyNotFoundException($"Transaction not found.");
 
         return MapToDto(transaction);
     }

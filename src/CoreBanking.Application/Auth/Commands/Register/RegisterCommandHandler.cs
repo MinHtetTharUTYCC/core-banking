@@ -28,6 +28,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             throw new InvalidOperationException(string.Join(", ", errors));
 
         var account = Account.Create(request.FullName, request.Email, AccountType.Savings, Currency.USD);
+        // auto activate the account upon registration
+        account.Activate();
         await _accountRepository.AddAsync(account, cancellationToken);
 
         var roles = await _identityService.GetRolesAsync(userId);
