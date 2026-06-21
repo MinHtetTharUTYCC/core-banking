@@ -8,6 +8,6 @@ public interface IIdentityService
     Task<(bool Success, UserDto? User, string[] Errors)> ValidateCredentialsAsync(string email, string password);
     Task<UserDto?> FindByIdAsync(string userId);
     Task<IList<string>> GetRolesAsync(string userId);
-    Task StoreRefreshTokenAsync(string userId, string refreshToken);
+    Task StoreRefreshTokenAsync(string userId, string refreshToken, CancellationToken cancellationToken = default);
     Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken);
 }

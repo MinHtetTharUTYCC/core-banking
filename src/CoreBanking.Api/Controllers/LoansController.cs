@@ -93,10 +93,7 @@ public class LoansController : ControllerBase
     public async Task<IActionResult> Disburse(Guid id)
     {
         var command = new DisburseLoanCommand { LoanId = id };
-        var result = await _mediator.Send(command);
-
-        if (!result)
-            return NotFound();
+        await _mediator.Send(command);
 
         return Ok(new { message = "Loan disbursed successfully" });
     }

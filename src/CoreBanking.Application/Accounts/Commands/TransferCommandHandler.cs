@@ -1,5 +1,6 @@
 using MediatR;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Application.Common.Exceptions;
 
 namespace CoreBanking.Application.Accounts.Commands;
 

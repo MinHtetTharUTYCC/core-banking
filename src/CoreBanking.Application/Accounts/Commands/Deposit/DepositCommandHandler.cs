@@ -17,11 +17,11 @@ public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
     {
         var account = await _repository.GetByIdAsync(request.AccountId);
 
-        if(account is null)
-            return new KeyNotFoundException("Account not found");
+        if (account is null)
+            throw new KeyNotFoundException("Account not found");
 
         if (account.OwnerEmail != request.OwnerEmail)
-            return new UnauthorizedAccessException("You do not own this account");
+            throw new UnauthorizedAccessException("You do not own this account");
 
         account.Deposit(request.Amount);
         await _repository.UpdateAsync(account);

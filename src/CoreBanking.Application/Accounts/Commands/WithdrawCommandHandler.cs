@@ -12,7 +12,7 @@ public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
         _repository = repository;
     }
 
-    public async Task<bool> Handle(WithdrawCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(WithdrawCommand request, CancellationToken cancellationToken)
     {
         var account = await _repository.GetByIdAsync(request.AccountId);
 

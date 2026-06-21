@@ -26,7 +26,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email,user.FullName, roles);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(user.Id, refreshToken);
+        await _identityService.StoreRefreshTokenAsync(user.Id, refreshToken,cancellationToken);
 
         return new AuthResponse
         {

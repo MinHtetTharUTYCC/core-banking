@@ -32,7 +32,7 @@ public class AccountsController : ControllerBase
         };
 
         var id = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetById), new { id }, new { id });
+        return CreatedAtAction(nameof(GetAccountById), new { id }, new { id });
     }
 
     [HttpGet("{id:guid}")]

@@ -81,7 +81,7 @@ public class IdentityService : IIdentityService
         return await _userManager.GetRolesAsync(user);
     }
 
-    public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
+    public async Task StoreRefreshTokenAsync(string userId, string refreshToken, CancellationToken cancellationToken = default)
     {
         var storedToken = new RefreshToken
         {
@@ -92,7 +92,7 @@ public class IdentityService : IIdentityService
         };
 
         _context.RefreshTokens.Add(storedToken);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken)

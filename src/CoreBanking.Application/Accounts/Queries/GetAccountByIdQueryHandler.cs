@@ -1,5 +1,6 @@
 using MediatR;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Application.Common.Exceptions;
 
 namespace CoreBanking.Application.Accounts.Queries;
 
@@ -20,7 +21,7 @@ public class GetAccountByIdQueryHandler : IRequestHandler<GetAccountByIdQuery, A
             throw new KeyNotFoundException("Account not found.");
 
         if (account.OwnerEmail != request.OwnerEmail)
-            return new BadRequestException("Unauthorized access to account.");
+            throw new BadRequestException("Unauthorized access to account.");
 
         return new AccountDto
         {
