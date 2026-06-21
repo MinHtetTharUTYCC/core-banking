@@ -1,9 +1,11 @@
+using CoreBanking.Application.Common.Models;
+
 namespace CoreBanking.Application.Common.Interfaces;
 
 public interface ITokenService
 {
-    string GenerateAccessToken(object user, IList<string> roles);
+    string GenerateAccessToken(string userId, string email, string fullName, IList<string> roles);
     string GenerateRefreshToken();
-    Task StoreRefreshTokenAsync(object user, string refreshToken);
-    Task<object?> ValidateRefreshTokenAsync(string refreshToken);
+    Task StoreRefreshTokenAsync(string userId, string refreshToken);
+    Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken);
 }

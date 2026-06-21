@@ -22,11 +22,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         if (!success || user == null)
             throw new InvalidOperationException("Invalid email or password");
 
-        var roles = await _identityService.GetRolesAsync(user,cancellationToken);
-        var accessToken = _tokenService.GenerateAccessToken(user, roles);
+        var roles = await _identityService.GetRolesAsync(user.Id);
+        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email,user.FullName, roles);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(userId, refreshToken,cancellationToken);
+        await _identityService.StoreRefreshTokenAsync(user.Id, refreshToken);
 
         return new AuthResponse
         {

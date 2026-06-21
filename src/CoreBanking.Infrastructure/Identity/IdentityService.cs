@@ -16,7 +16,7 @@ public class IdentityService : IIdentityService
         _context = context;
     }
 
-    public async Task<bool Success, string UserId, string[] Errors> RegisterAsync(string email, string password, string fullName, string role)
+    public async Task<(bool Success, string UserId, string[] Errors)> RegisterAsync(string email, string password, string fullName, string role)
     {
         var user = new ApplicationUser
         {
@@ -36,7 +36,7 @@ public class IdentityService : IIdentityService
         return (true, user.Id, []);
     }
 
-    public async Task<(bool Success, object? User, string[] Errors)> ValidateCredentialsAsync(string email, string password)
+    public async Task<(bool Success, UserDto? User, string[] Errors)> ValidateCredentialsAsync(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
@@ -46,7 +46,14 @@ public class IdentityService : IIdentityService
         if (!validPassword)
             return (false, null, ["Invalid email or password"]);
 
-        return (true, user, []);
+        var userDto = new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = user.FullName
+        };
+
+        return (true, userDto, Array.Empty<string>());
     }
 
     public async Task<UserDto?> FindByIdAsync(string userId)
@@ -61,7 +68,7 @@ public class IdentityService : IIdentityService
             Id = user.Id,
             Email = user.Email,
             FullName = user.FullName
-        }
+        };
     }
 
     public async Task<IList<string>> GetRolesAsync(string userId)
@@ -74,7 +81,7 @@ public class IdentityService : IIdentityService
         return await _userManager.GetRolesAsync(user);
     }
 
-    public async Task StoreRefreshTokenAsync(string userId, string refreshToken, CancellationToken ct)
+    public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
     {
         var storedToken = new RefreshToken
         {
@@ -85,10 +92,10 @@ public class IdentityService : IIdentityService
         };
 
         _context.RefreshTokens.Add(storedToken);
-        await _context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task<object?> ValidateRefreshTokenAsync(string refreshToken)
+    public async Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken)
     {
         var storedToken = await _context.RefreshTokens
             .Include(rt => rt.User)
@@ -97,6 +104,12 @@ public class IdentityService : IIdentityService
         if (storedToken == null)
             return null;
 
-        return storedToken.User;
+        var user = storedToken.User;
+        return new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = user.FullName
+        };
     }
 }

@@ -27,7 +27,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
         var accessToken = _tokenService.GenerateAccessToken(userId,request.Email, request.FullName, roles);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(user!, refreshToken);
+        await _identityService.StoreRefreshTokenAsync(userId, refreshToken);
 
         return new AuthResponse
         {

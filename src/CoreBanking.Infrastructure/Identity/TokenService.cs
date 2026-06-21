@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Application.Common.Models;
 using CoreBanking.Infrastructure.Identity;
 
 namespace CoreBanking.Infrastructure.Identity;
@@ -57,7 +58,6 @@ public class TokenService : ITokenService
 
     public async Task StoreRefreshTokenAsync(string userId, string refreshToken)
     {
-
         var storedToken = new RefreshToken
         {
             Token = refreshToken,
@@ -70,7 +70,7 @@ public class TokenService : ITokenService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<object?> ValidateRefreshTokenAsync(string refreshToken)
+    public async Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken)
     {
         var storedToken = await _context.RefreshTokens
             .Include(rt => rt.User)
@@ -79,6 +79,12 @@ public class TokenService : ITokenService
         if (storedToken == null)
             return null;
 
-        return storedToken.User;
+        var user = storedToken.User;
+        return new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FullName = user.FullName
+        };
     }
 }

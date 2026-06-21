@@ -21,11 +21,11 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         if (user == null)
             throw new InvalidOperationException("Invalid refresh token");
 
-        var roles = await _identityService.GetRolesAsync(user);
-        var accessToken = _tokenService.GenerateAccessToken(user, roles);
+        var roles = await _identityService.GetRolesAsync(user.Id);
+        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email!, user.FullName, roles);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(user, refreshToken);
+        await _identityService.StoreRefreshTokenAsync(user.Id, refreshToken);
 
         return new AuthResponse
         {
