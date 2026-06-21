@@ -38,9 +38,6 @@ public class TransactionsController : ControllerBase
         var query = new GetTransactionByIdQuery { Id = id };
         var result = await _mediator.Send(query);
 
-        if (result == null)
-            return NotFound();
-
         return Ok(result);
     }
 

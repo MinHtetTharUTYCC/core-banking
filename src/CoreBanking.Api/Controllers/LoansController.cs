@@ -42,9 +42,6 @@ public class LoansController : ControllerBase
         var query = new GetLoanByIdQuery { Id = id };
         var result = await _mediator.Send(query);
 
-        if (result == null)
-            return NotFound();
-
         return Ok(result);
     }
 
@@ -80,10 +77,7 @@ public class LoansController : ControllerBase
     public async Task<IActionResult> Approve(Guid id)
     {
         var command = new ApproveLoanCommand { LoanId = id };
-        var result = await _mediator.Send(command);
-
-        if (!result)
-            return NotFound();
+        await _mediator.Send(command);
 
         return Ok(new { message = "Loan approved successfully" });
     }
