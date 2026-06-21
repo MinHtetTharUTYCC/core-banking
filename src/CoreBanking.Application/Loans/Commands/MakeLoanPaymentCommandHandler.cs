@@ -3,7 +3,7 @@ using CoreBanking.Application.Common.Interfaces;
 
 namespace CoreBanking.Application.Loans.Commands;
 
-public class MakeLoanPaymentCommandHandler : IRequestHandler<MakeLoanPaymentCommand, bool>
+public class MakeLoanPaymentCommandHandler : IRequestHandler<MakeLoanPaymentCommand, Unit>
 {
     private readonly ILoanRepository _repository;
 
@@ -12,14 +12,15 @@ public class MakeLoanPaymentCommandHandler : IRequestHandler<MakeLoanPaymentComm
         _repository = repository;
     }
 
-    public async Task<bool> Handle(MakeLoanPaymentCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(MakeLoanPaymentCommand request, CancellationToken cancellationToken)
     {
         var loan = await _repository.GetByIdAsync(request.LoanId);
         if (loan == null)
-            return false;
+            throw new KeyNotFoundException("Loan not found");
 
         loan.MakePayment(request.Amount);
         await _repository.UpdateAsync(loan, cancellationToken);
-        return true;
+
+        return Unit.Value;
     }
 }

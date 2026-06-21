@@ -107,10 +107,7 @@ public class LoansController : ControllerBase
             Amount = request.Amount
         };
 
-        var result = await _mediator.Send(command);
-
-        if (!result)
-            return NotFound();
+        await _mediator.Send(command);
 
         return Ok(new { message = "Payment successful" });
     }
