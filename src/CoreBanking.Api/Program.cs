@@ -28,13 +28,7 @@ builder.Services.AddSwaggerGen(options =>
         In = Microsoft.OpenApi.ParameterLocation.Header,
         Description = "Enter your JWT token"
     });
-    options.AddSecurityRequirement(doc => new Microsoft.OpenApi.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer"),
-            new List<string>()
-        }
-    });
+    options.OperationFilter<BearerSecurityOperationFilter>();
 });
 
 builder.Services.AddMediatR(cfg =>
@@ -101,3 +95,18 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public class BearerSecurityOperationFilter : Swashbuckle.AspNetCore.SwaggerGen.IOperationFilter
+{
+    public void Apply(Microsoft.OpenApi.OpenApiOperation operation, Swashbuckle.AspNetCore.SwaggerGen.OperationFilterContext context)
+    {
+        operation.Security ??= [];
+        operation.Security.Add(new Microsoft.OpenApi.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", context.Document),
+                new List<string>()
+            }
+        });
+    }
+}
