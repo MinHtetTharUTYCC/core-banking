@@ -1,6 +1,8 @@
 using MediatR;
 using CoreBanking.Application.Auth.DTOs;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Domain.Enums;
+using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Application.Auth.Commands.Register;
 
@@ -8,11 +10,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 {
     private readonly IIdentityService _identityService;
     private readonly ITokenService _tokenService;
+    private readonly IAccountRepository _accountRepository;
 
-    public RegisterCommandHandler(IIdentityService identityService, ITokenService tokenService)
+    public RegisterCommandHandler(IIdentityService identityService, ITokenService tokenService, IAccountRepository accountRepository)
     {
         _identityService = identityService;
         _tokenService = tokenService;
+        _accountRepository = accountRepository;
     }
 
     public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -23,8 +27,11 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
         if (!success)
             throw new InvalidOperationException(string.Join(", ", errors));
 
+        var account = Account.Create(request.FullName, request.Email, AccountType.Savings, Currency.USD);
+        await _accountRepository.AddAsync(account, cancellationToken);
+
         var roles = await _identityService.GetRolesAsync(userId);
-        var accessToken = _tokenService.GenerateAccessToken(userId,request.Email, request.FullName, roles);
+        var accessToken = _tokenService.GenerateAccessToken(userId, request.Email, request.FullName, roles);
         var refreshToken = _tokenService.GenerateRefreshToken();
 
         await _identityService.StoreRefreshTokenAsync(userId, refreshToken);

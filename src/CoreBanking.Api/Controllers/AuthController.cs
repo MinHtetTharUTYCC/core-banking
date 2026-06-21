@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CoreBanking.Application.Auth.Commands.Register;
 using CoreBanking.Application.Auth.Commands.Login;
@@ -55,5 +57,23 @@ public class AuthController : ControllerBase
 
         var result = await _mediator.Send(command);
         return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var fullName = User.FindFirstValue("full_name");
+        var roles = User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+
+        return Ok(new
+        {
+            userId,
+            email,
+            fullName,
+            roles
+        });
     }
 }

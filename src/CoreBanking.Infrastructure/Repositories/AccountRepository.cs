@@ -29,6 +29,13 @@ public class AccountRepository : IAccountRepository
     {
         return await _context.Accounts.ToListAsync();
     }
+
+    public async Task<List<Account>> GetAllByEmailAsync(string email)
+    {
+        return await _context.Accounts
+            .Where(a => a.OwnerEmail == email)
+            .ToListAsync();
+    }
     
     public async Task AddAsync(Account account, CancellationToken cancellationToken = default)
     {

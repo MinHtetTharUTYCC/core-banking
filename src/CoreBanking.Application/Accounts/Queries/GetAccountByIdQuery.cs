@@ -2,9 +2,10 @@ using MediatR;
 
 namespace CoreBanking.Application.Accounts.Queries;
 
-public record GetAccountByIdQuery : IRequest<AccountDto?>
+public record GetAccountByIdQuery : IRequest<AccountDto>
 {
     public Guid Id { get; init; }
+    public string OwnerEmail { get; init; } = string.Empty;
 }
 
 public class AccountDto

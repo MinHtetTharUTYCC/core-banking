@@ -14,7 +14,7 @@ public class GetAllAccountsQueryHandler : IRequestHandler<GetAllAccountsQuery, L
     
     public async Task<List<AccountDto>> Handle(GetAllAccountsQuery request, CancellationToken cancellationToken)
     {
-        var accounts = await _repository.GetAllAsync();
+        var accounts = await _repository.GetAllByEmailAsync(request.OwnerEmail);
         
         return accounts.Select(a => new AccountDto
         {
