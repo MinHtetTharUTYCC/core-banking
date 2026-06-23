@@ -9,6 +9,11 @@ using CoreBanking.Infrastructure;
 using CoreBanking.Infrastructure.Identity;
 using CoreBanking.Application.Accounts.Commands;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
+using RedLockNet;
+using RedLockNet.SERedis;
+using RedLockNet.SERedis.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +45,27 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdempotencyBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "CoreBanking_";
+});
+
+builder.Services.AddSingleton<IDistributedLockFactory>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var connectionString = config.GetConnectionString("Redis");
+
+    // Singleton Redis connection
+    var multiplexer = ConnectionMultiplexer.Connect(connectionString);
+
+    // RedLock with single instance (only for development!)
+    return RedLockFactory.Create(new List<RedLockMultiplexer>
+    {
+        new RedLockMultiplexer(multiplexer)
+    });
+});
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddAuthentication(options =>
