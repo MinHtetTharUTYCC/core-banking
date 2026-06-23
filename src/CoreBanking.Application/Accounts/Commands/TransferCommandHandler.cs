@@ -52,8 +52,8 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
             description: $"Transfer from {fromAccount.AccountNumber.Value}",
             relatedAccountId: fromAccount.Id);
 
-        await _transactionRepository.AddAsync(debitTransaction);
-        await _transactionRepository.AddAsync(creditTransaction);
+        await _transactionRepository.AddAsync(debitTransaction, cancellationToken);
+        await _transactionRepository.AddAsync(creditTransaction, cancellationToken);
 
         try
         {

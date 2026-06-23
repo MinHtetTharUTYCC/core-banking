@@ -62,10 +62,10 @@ public class TransactionRepository : ITransactionRepository
         };
     }
 
-    public async Task AddAsync(Transaction transaction)
+    public async Task AddAsync(Transaction transaction,CancellationToken cancellationToken)
     {
         await _context.Transactions.AddAsync(transaction);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Transaction> ApplySorting(IQueryable<Transaction> query, TransactionSortOrder sortBy)
