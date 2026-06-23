@@ -51,6 +51,12 @@ public class Transaction : BaseEntity
         return transaction;
     }
     
+    public void StartProcessing()
+    {
+        Status = TransactionStatus.Processing;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Complete()
     {
         Status = TransactionStatus.Completed;

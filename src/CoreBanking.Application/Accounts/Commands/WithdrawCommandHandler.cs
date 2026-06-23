@@ -28,8 +28,6 @@ public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
 
         var balanceBefore = account.Balance.Amount;
 
-        account.Withdraw(request.Amount);
-
         var transaction = Transaction.Create(
             account: account,
             type: TransactionType.Debit,
@@ -37,9 +35,21 @@ public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
             currency: account.Balance.Currency,
             balanceBefore: balanceBefore,
             description: "Withdrawal");
-        transaction.Complete();
 
         await _transactionRepository.AddAsync(transaction);
+
+        try
+        {
+            transaction.StartProcessing();
+            account.Withdraw(request.Amount);
+            transaction.Complete();
+        }
+        catch (Exception)
+        {
+            transaction.Fail();
+            throw;
+        }
+
         await _repository.UpdateAsync(account);
 
         return Unit.Value;

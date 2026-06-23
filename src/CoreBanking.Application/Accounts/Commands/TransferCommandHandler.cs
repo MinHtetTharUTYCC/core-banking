@@ -34,8 +34,6 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
         var fromBalanceBefore = fromAccount.Balance.Amount;
         var toBalanceBefore = toAccount.Balance.Amount;
 
-        fromAccount.Transfer(toAccount, request.Amount);
-
         var debitTransaction = Transaction.Create(
             account: fromAccount,
             type: TransactionType.Debit,
@@ -44,7 +42,6 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
             balanceBefore: fromBalanceBefore,
             description: $"Transfer to {toAccount.AccountNumber.Value}",
             relatedAccountId: toAccount.Id);
-        debitTransaction.Complete();
 
         var creditTransaction = Transaction.Create(
             account: toAccount,
@@ -54,10 +51,27 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
             balanceBefore: toBalanceBefore,
             description: $"Transfer from {fromAccount.AccountNumber.Value}",
             relatedAccountId: fromAccount.Id);
-        creditTransaction.Complete();
 
         await _transactionRepository.AddAsync(debitTransaction);
         await _transactionRepository.AddAsync(creditTransaction);
+
+        try
+        {
+            debitTransaction.StartProcessing();
+            creditTransaction.StartProcessing();
+
+            fromAccount.Transfer(toAccount, request.Amount);
+
+            debitTransaction.Complete();
+            creditTransaction.Complete();
+        }
+        catch (Exception)
+        {
+            debitTransaction.Fail();
+            creditTransaction.Fail();
+            throw;
+        }
+
         await _repository.UpdateAsync(fromAccount);
         await _repository.UpdateAsync(toAccount);
 

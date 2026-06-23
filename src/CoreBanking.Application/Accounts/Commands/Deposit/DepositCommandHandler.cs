@@ -1,6 +1,5 @@
 using MediatR;
 using CoreBanking.Application.Common.Interfaces;
-using CoreBanking.Application.Accounts.Commands;
 using CoreBanking.Domain.Entities;
 using CoreBanking.Domain.Enums;
 
@@ -29,8 +28,6 @@ public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
 
         var balanceBefore = account.Balance.Amount;
 
-        account.Deposit(request.Amount);
-
         var transaction = Transaction.Create(
             account: account,
             type: TransactionType.Credit,
@@ -38,9 +35,21 @@ public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
             currency: account.Balance.Currency,
             balanceBefore: balanceBefore,
             description: "Deposit");
-        transaction.Complete();
 
         await _transactionRepository.AddAsync(transaction);
+
+        try
+        {
+            transaction.StartProcessing();
+            account.Deposit(request.Amount);
+            transaction.Complete();
+        }
+        catch (Exception)
+        {
+            transaction.Fail();
+            throw;
+        }
+
         await _repository.UpdateAsync(account);
 
         return Unit.Value;

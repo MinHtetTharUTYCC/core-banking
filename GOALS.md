@@ -45,12 +45,12 @@ A production-grade core banking system built with C#/.NET to master advanced ent
 - [x] Balance tracking with Money value object
 
 ### Phase 2: Transaction Processing
-- [ ] Deposit money
-- [ ] Withdraw money
-- [ ] Internal transfers
-- [ ] Transaction history with pagination
-- [ ] Idempotency keys (prevent duplicates)
-- [ ] Transaction states (pending → processing → completed/failed)
+- [x] Deposit money
+- [x] Withdraw money
+- [x] Internal transfers
+- [x] Transaction history with pagination
+- [x] Idempotency keys (prevent duplicates)
+- [x] Transaction states (pending → processing → completed/failed)
 
 ### Phase 3: Interest Engine
 - [ ] Different rates per account type
@@ -120,14 +120,14 @@ GET    /api/accounts/{id}/transactions - Get account transactions
 
 ## Patterns to Implement
 
-- [ ] Aggregate Root (Account)
-- [ ] Value Objects (Money, AccountNumber)
-- [ ] Domain Events
-- [ ] Repository Pattern
+- [x] Aggregate Root (Account)
+- [x] Value Objects (Money, AccountNumber)
+- [x] Domain Events
+- [x] Repository Pattern
 - [ ] Unit of Work
-- [ ] CQRS
-- [ ] MediatR Pipeline Behaviors
-- [ ] FluentValidation
+- [x] CQRS
+- [x] MediatR Pipeline Behaviors
+- [x] FluentValidation
 - [ ] Soft Delete
 - [ ] Optimistic Concurrency
 - [ ] Event Sourcing (Phase 5)

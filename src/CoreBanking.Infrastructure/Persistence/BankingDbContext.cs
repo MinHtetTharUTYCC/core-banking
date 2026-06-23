@@ -20,6 +20,7 @@ public class BankingDbContext : DbContext, IApplicationDbContext
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<Loan> Loans => Set<Loan>();
+    public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -165,5 +166,16 @@ public class LoanConfiguration : IEntityTypeConfiguration<Loan>
         builder.Ignore(l => l.DomainEvents);
 
         builder.HasQueryFilter(l => !l.IsDeleted);
+    }
+}
+
+public class IdempotencyKeyConfiguration : IEntityTypeConfiguration<IdempotencyKey>
+{
+    public void Configure(EntityTypeBuilder<IdempotencyKey> builder)
+    {
+        builder.HasKey(k => k.Id);
+        builder.HasIndex(k => k.Key).IsUnique();
+        builder.Property(k => k.Key).HasMaxLength(200).IsRequired();
+        builder.Property(k => k.Response).HasMaxLength(4000);
     }
 }

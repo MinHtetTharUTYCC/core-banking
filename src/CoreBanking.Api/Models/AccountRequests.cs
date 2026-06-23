@@ -25,6 +25,9 @@ public class DepositRequest
     [Required]
     [Range(0.01, (double)decimal.MaxValue, ErrorMessage = "Amount must be greater than 0")]
     public decimal Amount { get; init; }
+
+    [Required]
+    public string IdempotencyKey { get; init; } = string.Empty;
 }
 
 public class WithdrawRequest
@@ -32,6 +35,9 @@ public class WithdrawRequest
     [Required]
     [Range(0.01, (double)decimal.MaxValue, ErrorMessage = "Amount must be greater than 0")]
     public decimal Amount { get; init; }
+
+    [Required]
+    public string IdempotencyKey { get; init; } = string.Empty;
 }
 
 public class TransferRequest
@@ -45,4 +51,7 @@ public class TransferRequest
     [Required]
     [Range(0.01, (double)decimal.MaxValue, ErrorMessage = "Amount must be greater than 0")]
     public decimal Amount { get; init; }
+
+    [Required]
+    public string IdempotencyKey { get; init; } = string.Empty;
 }

@@ -61,16 +61,17 @@ public class AccountsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/deposit")]
-    public async Task<IActionResult> Deposit(Guid id, [FromBody] DepositRequest request,CancellationToken ct)
+    public async Task<IActionResult> Deposit(Guid id, [FromBody] DepositRequest request, CancellationToken ct)
     {
         var command = new DepositCommand
         {
             AccountId = id,
             Amount = request.Amount,
-            OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!
+            OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!,
+            IdempotencyKey = request.IdempotencyKey
         };
 
-        await _mediator.Send(command,ct);
+        await _mediator.Send(command, ct);
 
         return Ok(new { message = "Deposit successful" });
     }
@@ -82,10 +83,11 @@ public class AccountsController : ControllerBase
         {
             AccountId = id,
             Amount = request.Amount,
-            OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!
+            OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!,
+            IdempotencyKey = request.IdempotencyKey
         };
 
-        await _mediator.Send(command,ct);
+        await _mediator.Send(command, ct);
 
         return Ok(new { message = "Withdrawal successful" });
     }
@@ -98,10 +100,11 @@ public class AccountsController : ControllerBase
             FromAccountId = request.FromAccountId,
             ToAccountId = request.ToAccountId,
             Amount = request.Amount,
-            OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!
+            OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!,
+            IdempotencyKey = request.IdempotencyKey
         };
 
-        await _mediator.Send(command);
+        await _mediator.Send(command, ct);
 
         return Ok(new { message = "Transfer successful" });
     }
