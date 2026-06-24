@@ -1,0 +1,48 @@
+@inherits RazorLight.Templating.RazorTemplateBase
+@using CoreBanking.Application.Models
+@model WithdrawEmailModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f7; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #c0392b, #e74c3c); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px; color: #333333; line-height: 1.6; }
+        .content h2 { color: #c0392b; margin-top: 0; }
+        .info-box { background: #f8f9fa; border-left: 4px solid #e74c3c; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .amount { font-size: 28px; font-weight: bold; color: #e74c3c; text-align: center; margin: 20px 0; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 12px; border-top: 1px solid #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Withdrawal Confirmed</h1>
+        </div>
+        <div class="content">
+            <h2>Hello @Model.FullName,</h2>
+            <p>A withdrawal has been made from your account.</p>
+
+            <div class="amount">
+                - @Model.Currency @Model.Amount.ToString("N2")
+            </div>
+
+            <div class="info-box">
+                <strong>Transaction Details:</strong><br />
+                Date: @Model.TransactionDate.ToString("MMMM dd, yyyy HH:mm")<br />
+                New Balance: @Model.Currency @Model.NewBalance.ToString("N2")
+            </div>
+
+            <p>If you did not authorize this transaction, please contact our support team immediately.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.UtcNow.Year CoreBanking. All rights reserved.</p>
+            <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
