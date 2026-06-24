@@ -1,3 +1,4 @@
+using MediatR;
 using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Domain.Common;
 
@@ -5,10 +6,15 @@ namespace CoreBanking.Infrastructure.Services;
 
 public class DomainEventDispatcher : IDomainEventDispatcher
 {
-    public Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
+    private readonly IMediator _mediator;
+
+    public DomainEventDispatcher(IMediator mediator)
     {
-        // Domain events will be dispatched via MediatR when INotification handlers are added.
-        // For now, this is a no-op since there are no event handlers.
-        return Task.CompletedTask;
+        _mediator = mediator;
+    }
+
+    public async Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _mediator.Publish(domainEvent, cancellationToken);
     }
 }

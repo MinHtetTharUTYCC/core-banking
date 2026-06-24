@@ -1,8 +1,8 @@
 using MediatR;
 using CoreBanking.Application.Auth.DTOs;
 using CoreBanking.Application.Common.Interfaces;
-using CoreBanking.Domain.Enums;
 using CoreBanking.Domain.Entities;
+using CoreBanking.Domain.Enums;
 
 namespace CoreBanking.Application.Auth.Commands.Register;
 
@@ -12,7 +12,10 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
     private readonly ITokenService _tokenService;
     private readonly IAccountRepository _accountRepository;
 
-    public RegisterCommandHandler(IIdentityService identityService, ITokenService tokenService, IAccountRepository accountRepository)
+    public RegisterCommandHandler(
+        IIdentityService identityService,
+        ITokenService tokenService,
+        IAccountRepository accountRepository)
     {
         _identityService = identityService;
         _tokenService = tokenService;
@@ -28,7 +31,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
             throw new InvalidOperationException(string.Join(", ", errors));
 
         var account = Account.Create(request.FullName, request.Email, AccountType.Savings, Currency.USD);
-        // auto activate the account upon registration
         account.Activate();
         await _accountRepository.AddAsync(account, cancellationToken);
 

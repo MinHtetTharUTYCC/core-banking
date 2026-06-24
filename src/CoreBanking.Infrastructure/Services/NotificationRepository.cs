@@ -1,0 +1,51 @@
+using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Domain.Entities;
+using CoreBanking.Domain.Enums;
+using CoreBanking.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace CoreBanking.Infrastructure.Services;
+
+public class NotificationRepository : INotificationRepository
+{
+    private readonly BankingDbContext _context;
+
+    public NotificationRepository(BankingDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<Notification?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Notifications
+            .FirstOrDefaultAsync(n => n.Id == id && !n.IsDeleted, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Notification>> GetByRecipientEmailAsync(
+        string email, CancellationToken cancellationToken = default)
+    {
+        return await _context.Notifications
+            .Where(n => n.RecipientEmail == email && !n.IsDeleted)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Notification>> GetByTypeAsync(
+        NotificationType type, CancellationToken cancellationToken = default)
+    {
+        return await _context.Notifications
+            .Where(n => n.Type == type && !n.IsDeleted)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task AddAsync(Notification notification, CancellationToken cancellationToken = default)
+    {
+        await _context.Notifications.AddAsync(notification, cancellationToken);
+    }
+
+    public async Task UpdateAsync(Notification notification, CancellationToken cancellationToken = default)
+    {
+        _context.Notifications.Update(notification);
+    }
+}

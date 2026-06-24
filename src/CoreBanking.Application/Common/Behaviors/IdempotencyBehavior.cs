@@ -32,7 +32,7 @@ public class IdempotencyBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
         // Quick cache check (no lock)
         var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
         if (cached is not null)
-            return JsonSerializer.Deserialize<TResponse>(cached)!
+            return JsonSerializer.Deserialize<TResponse>(cached)!;
 
         // Acquire lock with retry
         using var redLock = await _lockFactory.CreateLockAsync(

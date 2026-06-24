@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Infrastructure.Configuration;
 using CoreBanking.Infrastructure.Persistence;
 using CoreBanking.Infrastructure.Repositories;
 using CoreBanking.Infrastructure.Services;
@@ -32,6 +33,9 @@ public static class DependencyInjection
         .AddRoles<IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>();
 
+        services.Configure<EmailSettings>(
+            configuration.GetSection(EmailSettings.SectionName));
+
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<BankingDbContext>());
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
@@ -40,6 +44,8 @@ public static class DependencyInjection
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         return services;
     }

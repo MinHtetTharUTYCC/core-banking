@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Domain.Common;
 using CoreBanking.Domain.Entities;
+using CoreBanking.Domain.Enums;
 using CoreBanking.Domain.ValueObjects;
 
 namespace CoreBanking.Infrastructure.Persistence;
@@ -20,6 +21,7 @@ public class BankingDbContext : DbContext, IApplicationDbContext
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<Loan> Loans => Set<Loan>();
+    public DbSet<Notification> Notifications => Set<Notification>();
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entities = ChangeTracker.Entries<BaseEntity>()
@@ -77,8 +79,53 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Ignore(a => a.Transactions);
         builder.Ignore(a => a.DomainEvents);
-        
+
         builder.HasQueryFilter(a => !a.IsDeleted);
+    }
+}
+
+public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+{
+    public void Configure(EntityTypeBuilder<Notification> builder)
+    {
+        builder.HasKey(n => n.Id);
+
+        builder.Property(n => n.Type)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        builder.Property(n => n.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.Property(n => n.RecipientEmail)
+            .HasMaxLength(256)
+            .IsRequired();
+
+        builder.Property(n => n.RecipientName)
+            .HasMaxLength(256)
+            .IsRequired();
+
+        builder.Property(n => n.Subject)
+            .HasMaxLength(500)
+            .IsRequired();
+
+        builder.Property(n => n.Body)
+            .IsRequired();
+
+        builder.Property(n => n.ErrorMessage)
+            .HasMaxLength(2000);
+
+        builder.Property(n => n.Metadata)
+            .HasMaxLength(4000);
+
+        builder.Ignore(n => n.DomainEvents);
+
+        builder.HasQueryFilter(n => !n.IsDeleted);
+
+        builder.HasIndex(n => n.RecipientEmail);
+        builder.HasIndex(n => n.Type);
+        builder.HasIndex(n => n.Status);
     }
 }
 
