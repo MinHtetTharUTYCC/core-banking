@@ -45,3 +45,23 @@ public class TransactionReceivedEmailModel: TransactionEmailModelBase
     public string SenderName { get; set; } = string.Empty;
     public string SenderAccountNumberMasked { get; set; } = string.Empty;
 }
+
+public class DepositEmailModel
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Currency { get; set; } = "USD";
+    public DateTime TransactionDate { get; set; }
+    public decimal NewBalance { get; set; }
+}
+
+public class WithdrawEmailModel
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string Currency { get; set; } = "USD";
+    public DateTime TransactionDate { get; set; }
+    public decimal NewBalance { get; set; }
+}

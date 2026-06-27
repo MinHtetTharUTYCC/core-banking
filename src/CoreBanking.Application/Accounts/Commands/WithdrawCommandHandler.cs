@@ -36,7 +36,7 @@ public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
             balanceBefore: balanceBefore,
             description: "Withdrawal");
 
-        await _transactionRepository.AddAsync(transaction);
+        await _transactionRepository.AddAsync(transaction,cancellationToken);
 
         try
         {

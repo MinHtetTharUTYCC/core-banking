@@ -2,27 +2,25 @@ using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
 using RedLockNet;
+using CoreBanking.Application.Common.Models;
+using CoreBanking.Domain.Enums;
 
 namespace CoreBanking.Application.Common.Behaviors;
+
 
 public interface IIdempotentRequest
 {
     string IdempotencyKey { get; }
 }
 
-public class IdempotencyBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public class IdempotencyBehavior<TRequest, TResponse>(
+    IDistributedCache cache,
+    IDistributedLockFactory lockFactory
+    ) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>, IIdempotentRequest
 {
-    private readonly IDistributedCache _cache;
-    private readonly IDistributedLockFactory _lockFactory;
     private static readonly TimeSpan KeyTtl = TimeSpan.FromHours(24);
     private static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(10);
-
-    public IdempotencyBehavior(IDistributedCache cache, IDistributedLockFactory lockFactory)
-    {
-        _cache = cache;
-        _lockFactory = lockFactory;
-    }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
@@ -30,12 +28,12 @@ public class IdempotencyBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
         var lockResource = $"lock:idempotency:{request.IdempotencyKey}";
 
         // Quick cache check (no lock)
-        var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
+        var cached = await cache.GetStringAsync(cacheKey, cancellationToken);
         if (cached is not null)
             return JsonSerializer.Deserialize<TResponse>(cached)!;
 
         // Acquire lock with retry
-        using var redLock = await _lockFactory.CreateLockAsync(
+        using var redLock = await lockFactory.CreateLockAsync(
             resource: lockResource,
             expiryTime: LockTimeout,
             waitTime: TimeSpan.FromSeconds(5),
@@ -48,7 +46,7 @@ public class IdempotencyBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
             throw new InvalidOperationException("Could not acquire lock - request with this idempotency key is already being processed.");
 
         // Double-check cache (lock acquired)
-        cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
+        cached = await cache.GetStringAsync(cacheKey, cancellationToken);
         if (cached is not null)
             return JsonSerializer.Deserialize<TResponse>(cached)!;
 
@@ -63,7 +61,7 @@ public class IdempotencyBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
             ExecutedAt = DateTime.UtcNow
         };
 
-        await _cache.SetStringAsync(
+        await cache.SetStringAsync(
             cacheKey,
             JsonSerializer.Serialize(record),
             new DistributedCacheEntryOptions

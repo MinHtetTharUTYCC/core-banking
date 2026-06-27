@@ -36,7 +36,7 @@ public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
             balanceBefore: balanceBefore,
             description: "Deposit");
 
-        await _transactionRepository.AddAsync(transaction);
+        await _transactionRepository.AddAsync(transaction,cancellationToken);
 
         try
         {

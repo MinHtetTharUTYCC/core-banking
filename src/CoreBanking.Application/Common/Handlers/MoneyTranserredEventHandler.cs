@@ -1,19 +1,25 @@
 using CoreBanking.Application.Common.Extensions;
+using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Application.Models;
+using CoreBanking.Domain.Enums;
+using CoreBanking.Domain.Events;
+using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace CoreBanking.Application.Common.Handlers;
 
-public class MoneyTransferredEventHanlder: IEventHandler<MoneyTransferredEvent>
+public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferredEvent>
 {
     private readonly IEmailService _emailService;
-    private readonly ILogger<MoenyTransferredEventHanlder> _logger;
+    private readonly ILogger<MoneyTransferredEventHandler> _logger;
 
-    public MoneyTransferredEventHanlder(IEmailService emailService, ILogger<MoenyTransferredEventHanlder> logger)
+    public MoneyTransferredEventHandler(IEmailService emailService, ILogger<MoneyTransferredEventHandler> logger)
     {
         _emailService = emailService;
         _logger = logger;
     }
 
-    public async Task Handle(MoneyTransferredEvent transfer,CancellationToken ct)
+    public async Task Handle(MoneyTransferredEvent transfer, CancellationToken ct)
     {
         var sendEmailTask = SendSentNotificationAsync(transfer, ct);
         var receiveEmailTask = SendReceivedNotificationAsync(transfer, ct);
@@ -26,58 +32,56 @@ public class MoneyTransferredEventHanlder: IEventHandler<MoneyTransferredEvent>
         try
         {
             await _emailService.SendAndTrackAsync(
-                fromAccount.OwnerEmail,
-                fromAccount.OwnerName,
-                "MoneyTranserredEmail",
+                transfer.FromAccount.OwnerEmail,
+                transfer.FromAccount.OwnerName,
+                "MoneyTransferred",
                 new TransactionSentEmailModel
                 {
                     Email = transfer.FromAccount.OwnerEmail,
                     FullName = transfer.FromAccount.OwnerName,
-                    Amount = amount,
-                    Currency = transfer.FromAccount.Currency,
-                    TransactionDate = transfer.DateTime,
-                    NewBalance = transfer.FromAccount.Balance,
-                    RecipientEmail = transfer.ToAccount.RecipientEmail,
-                    RecipientAccountNumberMasked = transfer.ToAccount.AccountNumber.MaskAccountNumber(),
+                    Amount = transfer.Amount,
+                    Currency = transfer.FromAccount.Balance.Currency.ToString(),
+                    TransactionDate = transfer.OccurredOn,
+                    NewBalance = transfer.FromAccount.Balance.Amount,
+                    RecipientName = transfer.ToAccount.OwnerName,
+                    RecipientAccountNumberMasked = transfer.ToAccount.AccountNumber.Value.MaskAccountNumber(),
                 },
-                "Money Transfer",
-                null,
-                ct,
-            )
+                "Money Transfer Sent",
+                NotificationType.TransactionAlert,
+                cancellationToken: ct);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            _logger.LogError(ex, $"{transfer.OccurredOn} Failed to send money transfer {transfer.EventId} notification email: from {transfer.FromAccount.OwnerEmail} to {transfer.ToAccount.OwnerEmail}");
+            _logger.LogError(ex, "Failed to send money transfer notification from {Email}", transfer.FromAccount.OwnerEmail);
         }
     }
+
     private async Task SendReceivedNotificationAsync(MoneyTransferredEvent transfer, CancellationToken ct)
     {
         try
         {
             await _emailService.SendAndTrackAsync(
-                toAccount.OwnerEmail,
-                toAccount.OwnerName,
+                transfer.ToAccount.OwnerEmail,
+                transfer.ToAccount.OwnerName,
                 "MoneyReceivedEmail",
                 new TransactionReceivedEmailModel
                 {
                     Email = transfer.ToAccount.OwnerEmail,
                     FullName = transfer.ToAccount.OwnerName,
                     Amount = transfer.Amount,
-                    Currency = transfer.ToAccount.Currency,
-                    TransactionDate = transfer.DateTime,
-                    NewBalance = transfer.ToAccount.Balance,
-                    SenderEmail = transfer.FromAccount.SenderEmail,
-                    SenderAccountNumberMasked = transfer.FromAccount.AccountNumber.MaskAccountNumber(),
+                    Currency = transfer.ToAccount.Balance.Currency.ToString(),
+                    TransactionDate = transfer.OccurredOn,
+                    NewBalance = transfer.ToAccount.Balance.Amount,
+                    SenderName = transfer.FromAccount.OwnerName,
+                    SenderAccountNumberMasked = transfer.FromAccount.AccountNumber.Value.MaskAccountNumber(),
                 },
                 "Money Received",
-                null,
-                ct,
-             );
-
+                NotificationType.TransactionAlert,
+                cancellationToken: ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"{transfer.OccurredOn} Failed to send money received {transfer.EventId} notification email: from {transfer.FromAccount.OwnerEmail} to {transfer.ToAccount.OwnerEmail}");
+            _logger.LogError(ex, "Failed to send money received notification to {Email}", transfer.ToAccount.OwnerEmail);
         }
     }
 }

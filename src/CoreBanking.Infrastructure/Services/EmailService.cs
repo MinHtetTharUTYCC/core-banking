@@ -1,5 +1,5 @@
-using System.Text.Json;
 using CoreBanking.Application.Common.Interfaces;
+using CoreBanking.Domain.Entities;
 using CoreBanking.Domain.Enums;
 using CoreBanking.Infrastructure.Configuration;
 using MailKit.Net.Smtp;
@@ -11,27 +11,17 @@ using RazorLight;
 
 namespace CoreBanking.Infrastructure.Services;
 
-public class EmailService : IEmailService
+public class EmailService(
+    IOptions<EmailSettings> settings,
+    INotificationRepository notificationRepository,
+    ILogger<EmailService> logger) : IEmailService
 {
-    private readonly EmailSettings _settings;
-    private readonly INotificationRepository _notificationRepository;
-    private readonly ILogger<EmailService> _logger;
-    private readonly RazorLightEngine _razorEngine;
-
-    public EmailService(
-        IOptions<EmailSettings> settings,
-        INotificationRepository notificationRepository,
-        ILogger<EmailService> logger)
-    {
-        _settings = settings.Value;
-        _notificationRepository = notificationRepository;
-        _logger = logger;
-
-        _razorEngine = new RazorLightEngineBuilder()
-            .UseFileSystemProject(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"))
-            .UseMemoryCachingProvider()
-            .Build();
-    }
+    private readonly EmailSettings _settings = settings.Value;
+    
+    private readonly RazorLightEngine _razorEngine = new RazorLightEngineBuilder()
+        .UseFileSystemProject(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"))
+        .UseMemoryCachingProvider()
+        .Build();
 
     public async Task<bool> SendAsync(
         string toEmail, string toName, string subject, string htmlBody,
@@ -39,7 +29,7 @@ public class EmailService : IEmailService
     {
         if (!_settings.Enabled)
         {
-            _logger.LogWarning("Email sending is disabled in configuration");
+            logger.LogWarning("Email sending is disabled in configuration");
             return false;
         }
 
@@ -51,7 +41,7 @@ public class EmailService : IEmailService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send email to {Email}", toEmail);
+            logger.LogError(ex, "Failed to send email to {Email}", toEmail);
             return false;
         }
     }
@@ -74,7 +64,7 @@ public class EmailService : IEmailService
         var notification = Notification.Create(
             notificationType, toEmail, toName, subject, htmlBody, metadata);
 
-        await _notificationRepository.AddAsync(notification, cancellationToken);
+        await notificationRepository.AddAsync(notification, cancellationToken);
 
         try
         {
@@ -82,14 +72,14 @@ public class EmailService : IEmailService
             await SendViaSmtpAsync(message, cancellationToken);
 
             notification.MarkAsSent();
-            await _notificationRepository.UpdateAsync(notification, cancellationToken);
+            await notificationRepository.UpdateAsync(notification, cancellationToken);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send tracked email to {Email}", toEmail);
+            logger.LogError(ex, "Failed to send tracked email to {Email}", toEmail);
             notification.MarkAsFailed(ex.Message);
-            await _notificationRepository.UpdateAsync(notification, cancellationToken);
+            await notificationRepository.UpdateAsync(notification, cancellationToken);
             return false;
         }
     }
