@@ -4,28 +4,20 @@ using CoreBanking.Application.Common.Interfaces;
 
 namespace CoreBanking.Application.Auth.Commands.RefreshToken;
 
-public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, AuthResponse>
+public class RefreshTokenCommandHandler(IIdentityService identityService,
+    ITokenService tokenService) : IRequestHandler<RefreshTokenCommand, AuthResponse>
 {
-    private readonly IIdentityService _identityService;
-    private readonly ITokenService _tokenService;
-
-    public RefreshTokenCommandHandler(IIdentityService identityService, ITokenService tokenService)
-    {
-        _identityService = identityService;
-        _tokenService = tokenService;
-    }
-
     public async Task<AuthResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var user = await _identityService.ValidateRefreshTokenAsync(request.RefreshToken);
+        var user = await identityService.ValidateRefreshTokenAsync(request.RefreshToken);
         if (user == null)
             throw new InvalidOperationException("Invalid refresh token");
 
-        var roles = await _identityService.GetRolesAsync(user.Id);
-        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email!, user.FullName, roles);
-        var refreshToken = _tokenService.GenerateRefreshToken();
+        var roles = await identityService.GetRolesAsync(user.Id);
+        var accessToken = tokenService.GenerateAccessToken(user.Id, user.Email!, user.FullName, roles);
+        var refreshToken = tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(user.Id, refreshToken);
+        await identityService.StoreRefreshTokenAsync(user.Id, refreshToken,cancellationToken);
 
         return new AuthResponse
         {

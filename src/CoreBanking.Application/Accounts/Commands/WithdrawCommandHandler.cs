@@ -5,20 +5,12 @@ using CoreBanking.Domain.Enums;
 
 namespace CoreBanking.Application.Accounts.Commands;
 
-public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
+public class WithdrawCommandHandler(IAccountRepository repository,
+    ITransactionRepository transactionRepository) : IRequestHandler<WithdrawCommand, Unit>
 {
-    private readonly IAccountRepository _repository;
-    private readonly ITransactionRepository _transactionRepository;
-
-    public WithdrawCommandHandler(IAccountRepository repository, ITransactionRepository transactionRepository)
-    {
-        _repository = repository;
-        _transactionRepository = transactionRepository;
-    }
-
     public async Task<Unit> Handle(WithdrawCommand request, CancellationToken cancellationToken)
     {
-        var account = await _repository.GetByIdAsync(request.AccountId);
+        var account = await repository.GetByIdAsync(request.AccountId);
 
         if (account is null)
             throw new KeyNotFoundException("Account not found.");
@@ -36,7 +28,7 @@ public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
             balanceBefore: balanceBefore,
             description: "Withdrawal");
 
-        await _transactionRepository.AddAsync(transaction,cancellationToken);
+        await transactionRepository.AddAsync(transaction,cancellationToken);
 
         try
         {
@@ -50,7 +42,7 @@ public class WithdrawCommandHandler : IRequestHandler<WithdrawCommand, Unit>
             throw;
         }
 
-        await _repository.UpdateAsync(account);
+        await repository.UpdateAsync(account);
 
         return Unit.Value;
     }

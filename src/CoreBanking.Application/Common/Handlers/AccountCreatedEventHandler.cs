@@ -10,8 +10,6 @@ namespace CoreBanking.Application.Common.Handlers;
 
 public class AccountCreatedEventHandler(IEmailService emailService,ILogger<AccountCreatedEventHandler> logger) : INotificationHandler<AccountCreatedEvent>
 {
-    
-
     public async Task Handle(AccountCreatedEvent notification, CancellationToken cancellationToken)
     {
         var account = notification.Account;

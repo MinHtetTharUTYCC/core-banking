@@ -4,29 +4,21 @@ using CoreBanking.Application.Common.Interfaces;
 
 namespace CoreBanking.Application.Auth.Commands.Login;
 
-public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
+public class LoginCommandHandler(IIdentityService identityService,
+    ITokenService tokenService) : IRequestHandler<LoginCommand, AuthResponse>
 {
-    private readonly IIdentityService _identityService;
-    private readonly ITokenService _tokenService;
-
-    public LoginCommandHandler(IIdentityService identityService, ITokenService tokenService)
-    {
-        _identityService = identityService;
-        _tokenService = tokenService;
-    }
-
     public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var (success, user, errors) = await _identityService.ValidateCredentialsAsync(request.Email, request.Password);
+        var (success, user, errors) = await identityService.ValidateCredentialsAsync(request.Email, request.Password);
 
         if (!success || user == null)
             throw new InvalidOperationException("Invalid email or password");
 
-        var roles = await _identityService.GetRolesAsync(user.Id);
-        var accessToken = _tokenService.GenerateAccessToken(user.Id, user.Email,user.FullName, roles);
-        var refreshToken = _tokenService.GenerateRefreshToken();
+        var roles = await identityService.GetRolesAsync(user.Id);
+        var accessToken = tokenService.GenerateAccessToken(user.Id, user.Email,user.FullName, roles);
+        var refreshToken = tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(user.Id, refreshToken,cancellationToken);
+        await identityService.StoreRefreshTokenAsync(user.Id, refreshToken,cancellationToken);
 
         return new AuthResponse
         {

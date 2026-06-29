@@ -5,18 +5,11 @@ using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Application.Loans.Queries;
 
-public class GetAllLoansQueryHandler : IRequestHandler<GetAllLoansQuery, PaginatedResult<LoanDto>>
+public class GetAllLoansQueryHandler(ILoanRepository repository) : IRequestHandler<GetAllLoansQuery, PaginatedResult<LoanDto>>
 {
-    private readonly ILoanRepository _repository;
-
-    public GetAllLoansQueryHandler(ILoanRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<PaginatedResult<LoanDto>> Handle(GetAllLoansQuery request, CancellationToken cancellationToken)
     {
-        var result = await _repository.GetAllAsync(request.SortBy, request.Page, request.PageSize);
+        var result = await repository.GetAllAsync(request.SortBy, request.Page, request.PageSize);
 
         return new PaginatedResult<LoanDto>
         {

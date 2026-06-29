@@ -3,22 +3,15 @@ using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Domain.Entities;
 using CoreBanking.Domain.Enums;
 
-namespace CoreBanking.Application.Accounts.Commands;
+namespace CoreBanking.Application.Accounts.Commands.Deposit;
 
-public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
+public class DepositCommandHandler(IAccountRepository repository,
+    ITransactionRepository transactionRepository) : IRequestHandler<DepositCommand, Unit>
 {
-    private readonly IAccountRepository _repository;
-    private readonly ITransactionRepository _transactionRepository;
-
-    public DepositCommandHandler(IAccountRepository repository, ITransactionRepository transactionRepository)
-    {
-        _repository = repository;
-        _transactionRepository = transactionRepository;
-    }
 
     public async Task<Unit> Handle(DepositCommand request, CancellationToken cancellationToken)
     {
-        var account = await _repository.GetByIdAsync(request.AccountId);
+        var account = await repository.GetByIdAsync(request.AccountId);
 
         if (account is null)
             throw new KeyNotFoundException("Account not found");
@@ -36,7 +29,7 @@ public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
             balanceBefore: balanceBefore,
             description: "Deposit");
 
-        await _transactionRepository.AddAsync(transaction,cancellationToken);
+        await transactionRepository.AddAsync(transaction,cancellationToken);
 
         try
         {
@@ -50,7 +43,7 @@ public class DepositCommandHandler : IRequestHandler<DepositCommand, Unit>
             throw;
         }
 
-        await _repository.UpdateAsync(account);
+        await repository.UpdateAsync(account);
 
         return Unit.Value;
     }

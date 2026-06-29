@@ -6,25 +6,13 @@ using CoreBanking.Domain.Enums;
 
 namespace CoreBanking.Application.Auth.Commands.Register;
 
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthResponse>
+public class RegisterCommandHandler(IIdentityService identityService,
+    ITokenService tokenService,
+    IAccountRepository accountRepository) : IRequestHandler<RegisterCommand, AuthResponse>
 {
-    private readonly IIdentityService _identityService;
-    private readonly ITokenService _tokenService;
-    private readonly IAccountRepository _accountRepository;
-
-    public RegisterCommandHandler(
-        IIdentityService identityService,
-        ITokenService tokenService,
-        IAccountRepository accountRepository)
-    {
-        _identityService = identityService;
-        _tokenService = tokenService;
-        _accountRepository = accountRepository;
-    }
-
     public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        var (success, userId, errors) = await _identityService.RegisterAsync(
+        var (success, userId, errors) = await identityService.RegisterAsync(
             request.Email, request.Password, request.FullName, "Customer");
 
         if (!success)
@@ -32,13 +20,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 
         var account = Account.Create(request.FullName, request.Email, AccountType.Savings, Currency.USD);
         account.Activate();
-        await _accountRepository.AddAsync(account, cancellationToken);
+        await accountRepository.AddAsync(account, cancellationToken);
 
-        var roles = await _identityService.GetRolesAsync(userId);
-        var accessToken = _tokenService.GenerateAccessToken(userId, request.Email, request.FullName, roles);
-        var refreshToken = _tokenService.GenerateRefreshToken();
+        var roles = await identityService.GetRolesAsync(userId);
+        var accessToken = tokenService.GenerateAccessToken(userId, request.Email, request.FullName, roles);
+        var refreshToken = tokenService.GenerateRefreshToken();
 
-        await _identityService.StoreRefreshTokenAsync(userId, refreshToken);
+        await identityService.StoreRefreshTokenAsync(userId, refreshToken,cancellationToken);
 
         return new AuthResponse
         {

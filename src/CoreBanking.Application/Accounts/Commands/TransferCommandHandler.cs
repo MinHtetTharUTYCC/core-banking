@@ -6,20 +6,13 @@ using CoreBanking.Domain.Enums;
 
 namespace CoreBanking.Application.Accounts.Commands;
 
-public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
+public class TransferCommandHandler(IAccountRepository repository,
+ITransactionRepository transactionRepository) : IRequestHandler<TransferCommand, Unit>
 {
-    private readonly IAccountRepository _repository;
-    private readonly ITransactionRepository _transactionRepository;
-
-    public TransferCommandHandler(IAccountRepository repository, ITransactionRepository transactionRepository)
-    {
-        _repository = repository;
-        _transactionRepository = transactionRepository;
-    }
 
     public async Task<Unit> Handle(TransferCommand request, CancellationToken cancellationToken)
     {
-        var fromAccount = await _repository.GetByIdAsync(request.FromAccountId);
+        var fromAccount = await repository.GetByIdAsync(request.FromAccountId);
 
         if (fromAccount == null)
             throw new KeyNotFoundException("Account not found");
@@ -27,7 +20,7 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
         if (fromAccount.OwnerEmail != request.OwnerEmail)
             throw new BadRequestException("You are not authorized to transfer from this account");
 
-        var toAccount = await _repository.GetByIdAsync(request.ToAccountId);
+        var toAccount = await repository.GetByIdAsync(request.ToAccountId);
         if (toAccount == null)
             throw new KeyNotFoundException("Account to transfer to not found");
 
@@ -52,8 +45,8 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
             description: $"Transfer from {fromAccount.AccountNumber.Value}",
             relatedAccountId: fromAccount.Id);
 
-        await _transactionRepository.AddAsync(debitTransaction, cancellationToken);
-        await _transactionRepository.AddAsync(creditTransaction, cancellationToken);
+        await transactionRepository.AddAsync(debitTransaction, cancellationToken);
+        await transactionRepository.AddAsync(creditTransaction, cancellationToken);
 
         try
         {
@@ -72,8 +65,8 @@ public class TransferCommandHandler : IRequestHandler<TransferCommand, Unit>
             throw;
         }
 
-        await _repository.UpdateAsync(fromAccount);
-        await _repository.UpdateAsync(toAccount);
+        await repository.UpdateAsync(fromAccount);
+        await repository.UpdateAsync(toAccount);
 
         return Unit.Value;
     }
