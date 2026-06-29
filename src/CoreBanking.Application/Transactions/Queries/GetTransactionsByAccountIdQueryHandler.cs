@@ -4,18 +4,11 @@ using CoreBanking.Application.Common.Models;
 
 namespace CoreBanking.Application.Transactions.Queries;
 
-public class GetTransactionsByAccountIdQueryHandler : IRequestHandler<GetTransactionsByAccountIdQuery, PaginatedResult<TransactionDto>>
+public class GetTransactionsByAccountIdQueryHandler(ITransactionRepository repository) : IRequestHandler<GetTransactionsByAccountIdQuery, PaginatedResult<TransactionDto>>
 {
-    private readonly ITransactionRepository _repository;
-
-    public GetTransactionsByAccountIdQueryHandler(ITransactionRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<PaginatedResult<TransactionDto>> Handle(GetTransactionsByAccountIdQuery request, CancellationToken cancellationToken)
     {
-        var result = await _repository.GetByAccountIdAsync(request.AccountId, request.SortBy, request.Page, request.PageSize);
+        var result = await repository.GetByAccountIdAsync(request.AccountId, request.SortBy, request.Page, request.PageSize);
 
         return new PaginatedResult<TransactionDto>
         {

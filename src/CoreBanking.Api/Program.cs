@@ -1,7 +1,6 @@
 using System.Text;
 using FluentValidation;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using CoreBanking.Application.Common.Behaviors;
@@ -9,7 +8,8 @@ using CoreBanking.Infrastructure;
 using CoreBanking.Infrastructure.Identity;
 using CoreBanking.Application.Accounts.Commands;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Caching.Distributed;
+using CoreBanking.Application.Common.Exceptions;
+using Microsoft.AspNetCore.Diagnostics;
 using StackExchange.Redis;
 using RedLockNet;
 using RedLockNet.SERedis;
@@ -115,6 +115,25 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseCors();
+
+app.UseExceptionHandler(errApp =>
+{
+    errApp.Run(async context =>
+    {
+        var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+        var exception = exceptionHandlerFeature?.Error;
+        
+        var (statusCode, message) = exception switch 
+        {
+            KeyNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
+            BadRequestException => (StatusCodes.Status400BadRequest, exception.Message),
+            _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
+        };
+        
+        context.Response.StatusCode = statusCode;
+        await context.Response.WriteAsJsonAsync(new { error = message });
+    });
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();

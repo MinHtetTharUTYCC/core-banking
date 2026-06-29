@@ -7,23 +7,16 @@ using CoreBanking.Infrastructure.Persistence;
 
 namespace CoreBanking.Infrastructure.Repositories;
 
-public class TransactionRepository : ITransactionRepository
+public class TransactionRepository(BankingDbContext context) : ITransactionRepository
 {
-    private readonly BankingDbContext _context;
-
-    public TransactionRepository(BankingDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<Transaction?> GetByIdAsync(Guid id)
     {
-        return await _context.Transactions.FindAsync(id);
+        return await context.Transactions.FindAsync(id);
     }
 
     public async Task<PaginatedResult<Transaction>> GetAllAsync(TransactionSortOrder sortBy, int page, int pageSize)
     {
-        var query = _context.Transactions.AsQueryable();
+        var query = context.Transactions.AsQueryable();
         query = ApplySorting(query, sortBy);
 
         var totalCount = await query.CountAsync();
@@ -43,7 +36,7 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<PaginatedResult<Transaction>> GetByAccountIdAsync(Guid accountId, TransactionSortOrder sortBy, int page, int pageSize)
     {
-        var query = _context.Transactions
+        var query = context.Transactions
             .Where(t => t.AccountId == accountId);
         query = ApplySorting(query, sortBy);
 
@@ -64,8 +57,8 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task AddAsync(Transaction transaction,CancellationToken cancellationToken)
     {
-        await _context.Transactions.AddAsync(transaction);
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.Transactions.AddAsync(transaction);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Transaction> ApplySorting(IQueryable<Transaction> query, TransactionSortOrder sortBy)

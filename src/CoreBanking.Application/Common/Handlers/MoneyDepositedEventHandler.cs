@@ -6,24 +6,15 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreBanking.Application.Common.Handlers;
 
-public class MoneyDepositedEventHandler : INotificationHandler<MoneyDepositedEvent>
+public class MoneyDepositedEventHandler(IEmailService emailService,ILogger<MoneyDepositedEventHandler> logger) : INotificationHandler<MoneyDepositedEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly ILogger<MoneyDepositedEventHandler> _logger;
-
-    public MoneyDepositedEventHandler(IEmailService emailService, ILogger<MoneyDepositedEventHandler> logger)
-    {
-        _emailService = emailService;
-        _logger = logger;
-    }
-
     public async Task Handle(MoneyDepositedEvent notification, CancellationToken cancellationToken)
     {
         var account = notification.Account;
 
         try
         {
-            await _emailService.SendAndTrackAsync(
+            await emailService.SendAndTrackAsync(
                 account.OwnerEmail,
                 account.OwnerName,
                 "Deposit",
@@ -42,7 +33,7 @@ public class MoneyDepositedEventHandler : INotificationHandler<MoneyDepositedEve
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send deposit email to {Email}", account.OwnerEmail);
+            logger.LogError(ex, "Failed to send deposit email to {Email}", account.OwnerEmail);
         }
     }
 }

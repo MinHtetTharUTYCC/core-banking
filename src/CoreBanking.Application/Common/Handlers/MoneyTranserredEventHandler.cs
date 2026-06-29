@@ -8,16 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreBanking.Application.Common.Handlers;
 
-public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferredEvent>
+public class MoneyTransferredEventHandler(IEmailService emailService,
+ ILogger<MoneyTransferredEventHandler> logger) : INotificationHandler<MoneyTransferredEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly ILogger<MoneyTransferredEventHandler> _logger;
-
-    public MoneyTransferredEventHandler(IEmailService emailService, ILogger<MoneyTransferredEventHandler> logger)
-    {
-        _emailService = emailService;
-        _logger = logger;
-    }
 
     public async Task Handle(MoneyTransferredEvent transfer, CancellationToken ct)
     {
@@ -31,7 +24,7 @@ public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferre
     {
         try
         {
-            await _emailService.SendAndTrackAsync(
+            await emailService.SendAndTrackAsync(
                 transfer.FromAccount.OwnerEmail,
                 transfer.FromAccount.OwnerName,
                 "MoneyTransferred",
@@ -52,7 +45,7 @@ public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferre
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send money transfer notification from {Email}", transfer.FromAccount.OwnerEmail);
+            logger.LogError(ex, "Failed to send money transfer notification from {Email}", transfer.FromAccount.OwnerEmail);
         }
     }
 
@@ -60,7 +53,7 @@ public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferre
     {
         try
         {
-            await _emailService.SendAndTrackAsync(
+            await emailService.SendAndTrackAsync(
                 transfer.ToAccount.OwnerEmail,
                 transfer.ToAccount.OwnerName,
                 "MoneyReceivedEmail",
@@ -81,7 +74,7 @@ public class MoneyTransferredEventHandler : INotificationHandler<MoneyTransferre
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send money received notification to {Email}", transfer.ToAccount.OwnerEmail);
+            logger.LogError(ex, "Failed to send money received notification to {Email}", transfer.ToAccount.OwnerEmail);
         }
     }
 }

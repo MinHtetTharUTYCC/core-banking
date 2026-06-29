@@ -8,16 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreBanking.Application.Common.Handlers;
 
-public class AccountCreatedEventHandler : INotificationHandler<AccountCreatedEvent>
+public class AccountCreatedEventHandler(IEmailService emailService,ILogger<AccountCreatedEventHandler> logger) : INotificationHandler<AccountCreatedEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly ILogger<AccountCreatedEventHandler> _logger;
-
-    public AccountCreatedEventHandler(IEmailService emailService, ILogger<AccountCreatedEventHandler> logger)
-    {
-        _emailService = emailService;
-        _logger = logger;
-    }
+    
 
     public async Task Handle(AccountCreatedEvent notification, CancellationToken cancellationToken)
     {
@@ -25,7 +18,7 @@ public class AccountCreatedEventHandler : INotificationHandler<AccountCreatedEve
 
         try
         {
-            await _emailService.SendAndTrackAsync(
+            await emailService.SendAndTrackAsync(
                 account.OwnerEmail,
                 account.OwnerName,
                 "WelcomeEmail",
@@ -42,30 +35,21 @@ public class AccountCreatedEventHandler : INotificationHandler<AccountCreatedEve
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send welcome email to {Email}", account.OwnerEmail);
+            logger.LogError(ex, "Failed to send welcome email to {Email}", account.OwnerEmail);
         }
     }
 }
 
 // i know this rebundant, but keep it, don't delete it
-public class AccountCreatedEventHandlerCopy: INotificationHandler<AccountCreatedEvent>
+public class AccountCreatedEventHandlerCopy(IEmailService emailService,ILogger<AccountCreatedEventHandlerCopy> logger): INotificationHandler<AccountCreatedEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly ILogger<AccountCreatedEventHandlerCopy> _logger;
-
-    public AccountCreatedEventHandlerCopy(IEmailService emailService, ILogger<AccountCreatedEventHandlerCopy> logger)
-    { 
-        _emailService = emailService;
-        _logger = logger;
-    }
-
     public async Task Handle(AccountCreatedEvent notification, CancellationToken ct)
     {
         var account = notification.Account;
 
         try
         {
-            await _emailService.SendAndTrackAsync(
+            await emailService.SendAndTrackAsync(
                 account.OwnerEmail,
                 account.OwnerName,
                 "WelcomeEmail",
@@ -81,7 +65,7 @@ public class AccountCreatedEventHandlerCopy: INotificationHandler<AccountCreated
                 ct);
         } catch(Exception ex)
         {
-            _logger.LogError(ex, "Failed to send welcome email to {Email}", account.OwnerEmail);
+            logger.LogError(ex, "Failed to send welcome email to {Email}", account.OwnerEmail);
         }
     }
 }

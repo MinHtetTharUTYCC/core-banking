@@ -7,29 +7,22 @@ using CoreBanking.Infrastructure.Persistence;
 
 namespace CoreBanking.Infrastructure.Repositories;
 
-public class LoanRepository : ILoanRepository
+public class LoanRepository(BankingDbContext context) : ILoanRepository
 {
-    private readonly BankingDbContext _context;
-
-    public LoanRepository(BankingDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<Loan?> GetByIdAsync(Guid id)
     {
-        return await _context.Loans.FindAsync(id);
+        return await context.Loans.FindAsync(id);
     }
 
     public async Task<Loan?> GetByLoanNumberAsync(string loanNumber)
     {
-        return await _context.Loans
+        return await context.Loans
             .FirstOrDefaultAsync(l => l.LoanNumber.Value == loanNumber);
     }
 
     public async Task<PaginatedResult<Loan>> GetByAccountIdAsync(Guid accountId, LoanSortOrder sortBy, int page, int pageSize)
     {
-        var query = _context.Loans
+        var query = context.Loans
             .Where(l => l.AccountId == accountId);
         query = ApplySorting(query, sortBy);
 
@@ -50,7 +43,7 @@ public class LoanRepository : ILoanRepository
 
     public async Task<PaginatedResult<Loan>> GetAllAsync(LoanSortOrder sortBy, int page, int pageSize)
     {
-        var query = _context.Loans.AsQueryable();
+        var query = context.Loans.AsQueryable();
         query = ApplySorting(query, sortBy);
 
         var totalCount = await query.CountAsync();
@@ -70,14 +63,14 @@ public class LoanRepository : ILoanRepository
 
     public async Task AddAsync(Loan loan, CancellationToken cancellationToken = default)
     {
-        await _context.Loans.AddAsync(loan, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.Loans.AddAsync(loan, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(Loan loan, CancellationToken cancellationToken = default)
     {
-        _context.Loans.Update(loan);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.Loans.Update(loan);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Loan> ApplySorting(IQueryable<Loan> query, LoanSortOrder sortBy)

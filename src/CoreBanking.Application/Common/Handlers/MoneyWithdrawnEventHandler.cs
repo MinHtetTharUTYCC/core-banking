@@ -6,24 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace CoreBanking.Application.Common.Handlers;
 
-public class MoneyWithdrawnEventHandler : INotificationHandler<MoneyWithdrawnEvent>
+public class MoneyWithdrawnEventHandler(IEmailService emailService,
+    ILogger<MoneyWithdrawnEventHandler> logger): INotificationHandler<MoneyWithdrawnEvent>
 {
-    private readonly IEmailService _emailService;
-    private readonly ILogger<MoneyWithdrawnEventHandler> _logger;
-
-    public MoneyWithdrawnEventHandler(IEmailService emailService, ILogger<MoneyWithdrawnEventHandler> logger)
-    {
-        _emailService = emailService;
-        _logger = logger;
-    }
-
     public async Task Handle(MoneyWithdrawnEvent notification, CancellationToken cancellationToken)
     {
         var account = notification.Account;
 
         try
         {
-            await _emailService.SendAndTrackAsync(
+            await emailService.SendAndTrackAsync(
                 account.OwnerEmail,
                 account.OwnerName,
                 "Withdraw",
@@ -42,7 +34,7 @@ public class MoneyWithdrawnEventHandler : INotificationHandler<MoneyWithdrawnEve
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send withdrawal email to {Email}", account.OwnerEmail);
+            logger.LogError(ex, "Failed to send withdrawal email to {Email}", account.OwnerEmail);
         }
     }
 }
