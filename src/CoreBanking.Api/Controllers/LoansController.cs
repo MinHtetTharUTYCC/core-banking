@@ -10,14 +10,8 @@ namespace CoreBanking.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class LoansController : ControllerBase
+public class LoansController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public LoansController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
     [HttpPost]
     public async Task<IActionResult> Apply([FromBody] ApplyLoanRequest request)
@@ -32,7 +26,7 @@ public class LoansController : ControllerBase
             TermMonths = request.TermMonths
         };
 
-        var id = await _mediator.Send(command);
+        var id = await mediator.Send(command);
         return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
@@ -40,7 +34,7 @@ public class LoansController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var query = new GetLoanByIdQuery { Id = id };
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
 
         return Ok(result);
     }
@@ -54,7 +48,7 @@ public class LoansController : ControllerBase
             Page = parameters.Page,
             PageSize = parameters.PageSize
         };
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 
@@ -68,7 +62,7 @@ public class LoansController : ControllerBase
             Page = parameters.Page,
             PageSize = parameters.PageSize
         };
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 
@@ -77,7 +71,7 @@ public class LoansController : ControllerBase
     public async Task<IActionResult> Approve(Guid id)
     {
         var command = new ApproveLoanCommand { LoanId = id };
-        await _mediator.Send(command);
+        await mediator.Send(command);
 
         return Ok(new { message = "Loan approved successfully" });
     }
@@ -87,7 +81,7 @@ public class LoansController : ControllerBase
     public async Task<IActionResult> Disburse(Guid id)
     {
         var command = new DisburseLoanCommand { LoanId = id };
-        await _mediator.Send(command);
+        await mediator.Send(command);
 
         return Ok(new { message = "Loan disbursed successfully" });
     }
@@ -101,7 +95,7 @@ public class LoansController : ControllerBase
             Amount = request.Amount
         };
 
-        await _mediator.Send(command);
+        await mediator.Send(command);
 
         return Ok(new { message = "Payment successful" });
     }

@@ -4,18 +4,11 @@ using CoreBanking.Application.Common.Exceptions;
 
 namespace CoreBanking.Application.Accounts.Queries;
 
-public class GetAccountByIdQueryHandler : IRequestHandler<GetAccountByIdQuery, AccountDto>
+public class GetAccountByIdQueryHandler(IAccountRepository repository) : IRequestHandler<GetAccountByIdQuery, AccountDto>
 {
-    private readonly IAccountRepository _repository;
-
-    public GetAccountByIdQueryHandler(IAccountRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<AccountDto> Handle(GetAccountByIdQuery request, CancellationToken cancellationToken)
     {
-        var account = await _repository.GetByIdAsync(request.Id);
+        var account = await repository.GetByIdAsync(request.Id);
 
         if (account == null)
             throw new KeyNotFoundException("Account not found.");

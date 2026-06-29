@@ -10,14 +10,8 @@ namespace CoreBanking.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class TransactionsController : ControllerBase
+public class TransactionsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public TransactionsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] TransactionQueryParams parameters)
@@ -28,7 +22,7 @@ public class TransactionsController : ControllerBase
             Page = parameters.Page,
             PageSize = parameters.PageSize
         };
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 
@@ -36,7 +30,7 @@ public class TransactionsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var query = new GetTransactionByIdQuery { Id = id };
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
 
         return Ok(result);
     }
@@ -51,7 +45,7 @@ public class TransactionsController : ControllerBase
             Page = parameters.Page,
             PageSize = parameters.PageSize
         };
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 }

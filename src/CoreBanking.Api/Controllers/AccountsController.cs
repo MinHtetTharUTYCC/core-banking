@@ -11,15 +11,8 @@ namespace CoreBanking.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AccountsController : ControllerBase
+public class AccountsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public AccountsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateAccountRequest request)
     {
@@ -31,7 +24,7 @@ public class AccountsController : ControllerBase
             Currency = request.Currency
         };
 
-        var id = await _mediator.Send(command);
+        var id = await mediator.Send(command);
         return CreatedAtAction(nameof(GetAccountById), new { id }, new { id });
     }
 
@@ -44,8 +37,8 @@ public class AccountsController : ControllerBase
             OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!
         };
 
-        var result = await _mediator.Send(query);
-        return result == null ? NotFound() : Ok(result);
+        var result = await mediator.Send(query);
+        return Ok(result);
     }
 
     [HttpGet]
@@ -56,7 +49,7 @@ public class AccountsController : ControllerBase
             OwnerEmail = User.FindFirstValue(ClaimTypes.Email)!
         };
 
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 
@@ -71,7 +64,7 @@ public class AccountsController : ControllerBase
             IdempotencyKey = request.IdempotencyKey
         };
 
-        await _mediator.Send(command, ct);
+        await mediator.Send(command, ct);
 
         return Ok(new { message = "Deposit successful" });
     }
@@ -87,7 +80,7 @@ public class AccountsController : ControllerBase
             IdempotencyKey = request.IdempotencyKey
         };
 
-        await _mediator.Send(command, ct);
+        await mediator.Send(command, ct);
 
         return Ok(new { message = "Withdrawal successful" });
     }
@@ -104,7 +97,7 @@ public class AccountsController : ControllerBase
             IdempotencyKey = request.IdempotencyKey
         };
 
-        await _mediator.Send(command, ct);
+        await mediator.Send(command, ct);
 
         return Ok(new { message = "Transfer successful" });
     }

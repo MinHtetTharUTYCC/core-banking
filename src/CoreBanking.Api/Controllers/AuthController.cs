@@ -11,14 +11,8 @@ namespace CoreBanking.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-
-    public AuthController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
@@ -30,7 +24,7 @@ public class AuthController : ControllerBase
             FullName = request.FullName
         };
 
-        var result = await _mediator.Send(command,ct);
+        var result = await mediator.Send(command,ct);
         return Ok(result);
     }
 
@@ -43,7 +37,7 @@ public class AuthController : ControllerBase
             Password = request.Password
         };
 
-        var result = await _mediator.Send(command);
+        var result = await mediator.Send(command);
         return Ok(result);
     }
 
@@ -55,7 +49,7 @@ public class AuthController : ControllerBase
             RefreshToken = request.RefreshToken
         };
 
-        var result = await _mediator.Send(command);
+        var result = await mediator.Send(command);
         return Ok(result);
     }
 

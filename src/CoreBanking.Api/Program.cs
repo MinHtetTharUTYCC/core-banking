@@ -55,7 +55,8 @@ builder.Services.AddStackExchangeRedisCache(options =>
 builder.Services.AddSingleton<IDistributedLockFactory>(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
-    var connectionString = config.GetConnectionString("Redis");
+    var connectionString = config.GetConnectionString("Redis") ??
+                           throw new InvalidOperationException("Redis Connection string is not configured!");;
 
     // Singleton Redis connection
     var multiplexer = ConnectionMultiplexer.Connect(connectionString);
