@@ -3,18 +3,11 @@ using CoreBanking.Application.Common.Interfaces;
 
 namespace CoreBanking.Application.Loans.Queries;
 
-public class GetLoanByIdQueryHandler : IRequestHandler<GetLoanByIdQuery, LoanDto>
+public class GetLoanByIdQueryHandler(ILoanRepository repository) : IRequestHandler<GetLoanByIdQuery, LoanDto>
 {
-    private readonly ILoanRepository _repository;
-
-    public GetLoanByIdQueryHandler(ILoanRepository repository)
-    {
-        _repository = repository;
-    }
-
     public async Task<LoanDto> Handle(GetLoanByIdQuery request, CancellationToken cancellationToken)
     {
-        var loan = await _repository.GetByIdAsync(request.Id);
+        var loan = await repository.GetByIdAsync(request.Id);
         if (loan == null)
             throw new KeyNotFoundException("Loan not found");
 
