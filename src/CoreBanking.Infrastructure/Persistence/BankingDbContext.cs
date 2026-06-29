@@ -3,30 +3,26 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Domain.Common;
 using CoreBanking.Domain.Entities;
-using CoreBanking.Domain.Enums;
 using CoreBanking.Domain.ValueObjects;
 
 namespace CoreBanking.Infrastructure.Persistence;
 
-public class BankingDbContext : DbContext, IApplicationDbContext
+public class BankingDbContext(DbContextOptions<BankingDbContext> options, IDomainEventDispatcher dispatcher)
+    : DbContext(options), IApplicationDbContext
 {
-    private readonly IDomainEventDispatcher _dispatcher;
-    
-    public BankingDbContext(DbContextOptions<BankingDbContext> options, IDomainEventDispatcher dispatcher) 
-        : base(options) 
-    { 
-        _dispatcher = dispatcher;
-    }
-    
     public DbSet<Account> Accounts => Set<Account>();
+    
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    
     public DbSet<Loan> Loans => Set<Loan>();
+    
     public DbSet<Notification> Notifications => Set<Notification>();
+    
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var entities = ChangeTracker.Entries<BaseEntity>()
             .Select(e => e.Entity)
-            .Where(e => e.DomainEvents.Any())
+            .Where(e => e.DomainEvents.Count >0)
             .ToList();
 
         var domainEvents = entities
@@ -39,7 +35,7 @@ public class BankingDbContext : DbContext, IApplicationDbContext
             entity.ClearDomainEvents();
 
         foreach (var domainEvent in domainEvents)
-            await _dispatcher.DispatchAsync(domainEvent, cancellationToken);
+            await dispatcher.DispatchAsync(domainEvent, cancellationToken);
 
         return result;
     }

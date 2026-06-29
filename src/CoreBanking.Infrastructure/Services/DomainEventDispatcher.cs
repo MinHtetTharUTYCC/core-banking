@@ -4,17 +4,10 @@ using CoreBanking.Domain.Common;
 
 namespace CoreBanking.Infrastructure.Services;
 
-public class DomainEventDispatcher : IDomainEventDispatcher
+public class DomainEventDispatcher(IMediator mediator) : IDomainEventDispatcher
 {
-    private readonly IMediator _mediator;
-
-    public DomainEventDispatcher(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     public async Task DispatchAsync(IDomainEvent domainEvent, CancellationToken cancellationToken = default)
     {
-        await _mediator.Publish(domainEvent, cancellationToken);
+        await mediator.Publish(domainEvent, cancellationToken);
     }
 }

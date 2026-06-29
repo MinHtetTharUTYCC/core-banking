@@ -39,36 +39,18 @@ public class IdentityService : IIdentityService
     public async Task<(bool Success, UserDto? User, string[] Errors)> ValidateCredentialsAsync(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+        
+        if (user == null || !await _userManager.CheckPasswordAsync(user, password))
             return (false, null, ["Invalid email or password"]);
 
-        var validPassword = await _userManager.CheckPasswordAsync(user, password);
-        if (!validPassword)
-            return (false, null, ["Invalid email or password"]);
-
-        var userDto = new UserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            FullName = user.FullName
-        };
-
-        return (true, userDto, Array.Empty<string>());
+        return (true, user.ToUserDto(), []);
     }
 
     public async Task<UserDto?> FindByIdAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user is null)
-            return null;
-
-        return new UserDto
-        {
-            Id = user.Id,
-            Email = user.Email,
-            FullName = user.FullName
-        };
+        return user?.ToUserDto();
     }
 
     public async Task<IList<string>> GetRolesAsync(string userId)
@@ -108,7 +90,7 @@ public class IdentityService : IIdentityService
         return new UserDto
         {
             Id = user.Id,
-            Email = user.Email,
+            Email = user.Email ?? throw new InvalidOperationException("User has no email."),
             FullName = user.FullName
         };
     }

@@ -7,24 +7,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Application.Common.Models;
-using CoreBanking.Infrastructure.Identity;
 
 namespace CoreBanking.Infrastructure.Identity;
 
-public class TokenService : ITokenService
+public class TokenService(IConfiguration configuration,ApplicationDbContext context) : ITokenService
 {
-    private readonly IConfiguration _configuration;
-    private readonly ApplicationDbContext _context;
-
-    public TokenService(IConfiguration configuration, ApplicationDbContext context)
-    {
-        _configuration = configuration;
-        _context = context;
-    }
-
     public string GenerateAccessToken(string userId, string email, string fullName, IList<string> roles)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -32,17 +22,16 @@ public class TokenService : ITokenService
             new(ClaimTypes.NameIdentifier, userId),
             new(ClaimTypes.Email, email!),
             new("full_name", fullName),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
-
-        foreach (var role in roles)
-            claims.Add(new Claim(ClaimTypes.Role, role));
+        
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
+            issuer: configuration["Jwt:Issuer"],
+            audience: configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:AccessTokenExpirationMinutes"])),
+            expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(configuration["Jwt:AccessTokenExpirationMinutes"])),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
@@ -66,13 +55,13 @@ public class TokenService : ITokenService
             Created = DateTime.UtcNow
         };
 
-        _context.RefreshTokens.Add(storedToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.RefreshTokens.Add(storedToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken)
     {
-        var storedToken = await _context.RefreshTokens
+        var storedToken = await context.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken && !rt.IsExpired);
 
@@ -83,7 +72,7 @@ public class TokenService : ITokenService
         return new UserDto
         {
             Id = user.Id,
-            Email = user.Email,
+            Email = user.Email ?? throw new InvalidOperationException("User has no email."),
             FullName = user.FullName
         };
     }

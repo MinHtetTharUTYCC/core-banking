@@ -36,9 +36,10 @@ public class NotificationRepository(BankingDbContext context) : INotificationRep
     {
         await context.Notifications.AddAsync(notification, cancellationToken);
     }
-
-    public async Task UpdateAsync(Notification notification, CancellationToken cancellationToken = default)
+    
+    public Task UpdateAsync(Notification notification, CancellationToken cancellationToken = default)
     {
         context.Notifications.Update(notification);
+        return Task.CompletedTask;
     }
 }
