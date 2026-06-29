@@ -81,7 +81,7 @@ public class IdentityService : IIdentityService
     {
         var storedToken = await _context.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken && !rt.IsExpired);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.Expires > DateTime.UtcNow);
 
         if (storedToken == null)
             return null;

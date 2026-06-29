@@ -45,7 +45,9 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdempotencyBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));
 
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis")
+    ?? throw new InvalidOperationException("Redis connection string is not configured. Set ConnectionStrings:Redis in appsettings.");
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = redisConnectionString;
@@ -54,12 +56,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 
 builder.Services.AddSingleton<IDistributedLockFactory>(sp =>
 {
-    var config = sp.GetRequiredService<IConfiguration>();
-    var connectionString = config.GetConnectionString("Redis") ??
-                           throw new InvalidOperationException("Redis Connection string is not configured!");;
-
-    // Singleton Redis connection
-    var multiplexer = ConnectionMultiplexer.Connect(connectionString);
+    var multiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
 
     // RedLock with single instance (only for development!)
     return RedLockFactory.Create(new List<RedLockMultiplexer>
@@ -125,8 +122,11 @@ app.UseExceptionHandler(errApp =>
         
         var (statusCode, message) = exception switch 
         {
-            KeyNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
+            ValidationException valEx => (StatusCodes.Status400BadRequest, valEx.Errors.First().ErrorMessage),
+            InvalidOperationException => (StatusCodes.Status400BadRequest, exception.Message),
             BadRequestException => (StatusCodes.Status400BadRequest, exception.Message),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message),
+            KeyNotFoundException => (StatusCodes.Status404NotFound, exception.Message),
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
         
