@@ -57,10 +57,7 @@ public class Account : BaseEntity
         if (amount <= 0)
             throw new ArgumentException("Deposit amount must be positive");
         
-        var depositMoney = new Money(amount, Balance.Currency);
-        Balance = Balance.Add(depositMoney);
-        UpdatedAt = DateTime.UtcNow;
-        
+        Credit(amount);
         AddDomainEvent(new MoneyDepositedEvent(this, amount));
     }
 
@@ -91,9 +88,16 @@ public class Account : BaseEntity
             throw new InvalidOperationException("Cannot transfer between different currencies");
         
         Withdraw(amount);
-        toAccount.Deposit(amount);
+        toAccount.Credit(amount);
         
         AddDomainEvent(new MoneyTransferredEvent(this, toAccount, amount));
+    }
+    
+    private void Credit(decimal amount)
+    {
+        var creditMoney = new Money(amount, Balance.Currency);
+        Balance = Balance.Add(creditMoney);
+        UpdatedAt = DateTime.UtcNow;
     }
 
 }
