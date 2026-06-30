@@ -3,12 +3,7 @@ using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Domain.Events;
 
-public class LoanAppliedEvent : DomainEvent
+public class LoanAppliedEvent(Loan loan) : DomainEvent
 {
-    public Loan Loan { get; }
-
-    public LoanAppliedEvent(Loan loan)
-    {
-        Loan = loan;
-    }
+    public Loan Loan { get; } = loan;
 }

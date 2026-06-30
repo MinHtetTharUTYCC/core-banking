@@ -1,13 +1,15 @@
+using System.Collections.Concurrent;
+using System.Reflection;
 using CoreBanking.Application.Common.Interfaces;
 using CoreBanking.Domain.Entities;
 using CoreBanking.Domain.Enums;
 using CoreBanking.Infrastructure.Configuration;
+using Fluid;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using RazorLight;
 
 namespace CoreBanking.Infrastructure.Services;
 
@@ -17,11 +19,7 @@ public class EmailService(
     ILogger<EmailService> logger) : IEmailService
 {
     private readonly EmailSettings _settings = settings.Value;
-    
-    private readonly RazorLightEngine _razorEngine = new RazorLightEngineBuilder()
-        .UseFileSystemProject(Path.Combine(AppContext.BaseDirectory, "EmailTemplates"))
-        .UseMemoryCachingProvider()
-        .Build();
+    private static readonly ConcurrentDictionary<string, IFluidTemplate> TemplateCache = new();
 
     public async Task<bool> SendAsync(
         string toEmail, string toName, string subject, string htmlBody,
@@ -50,7 +48,7 @@ public class EmailService(
         string toEmail, string toName, string templateKey, TModel model,
         string subject, CancellationToken cancellationToken = default)
     {
-        var htmlBody = await _razorEngine.CompileRenderAsync(templateKey, model);
+        var htmlBody = RenderTemplate(templateKey, model);
         return await SendAsync(toEmail, toName, subject, htmlBody, cancellationToken);
     }
 
@@ -59,7 +57,7 @@ public class EmailService(
         string subject, NotificationType notificationType,
         string? metadata = null, CancellationToken cancellationToken = default)
     {
-        var htmlBody = await _razorEngine.CompileRenderAsync(templateKey, model);
+        var htmlBody = RenderTemplate(templateKey, model);
 
         var notification = Notification.Create(
             notificationType, toEmail, toName, subject, htmlBody, metadata);
@@ -82,6 +80,22 @@ public class EmailService(
             await notificationRepository.UpdateAsync(notification, cancellationToken);
             return false;
         }
+    }
+
+    private static string RenderTemplate<TModel>(string templateKey, TModel model)
+    {
+        var template = TemplateCache.GetOrAdd(templateKey, key =>
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = $"{assembly.GetName().Name}.EmailTemplates.{key}.scriban";
+            using var stream = assembly.GetManifestResourceStream(resourceName)
+                ?? throw new FileNotFoundException($"Email template not found: {resourceName}");
+            using var reader = new StreamReader(stream);
+            return new FluidParser().Parse(reader.ReadToEnd());
+        });
+
+        var context = new TemplateContext(model, true);
+        return template.Render(context);
     }
 
     private MimeMessage CreateMimeMessage(string toEmail, string toName, string subject, string htmlBody)
@@ -111,7 +125,7 @@ public class EmailService(
             _settings.SmtpPassword,
             cancellationToken);
 
-        await client.SendAsync(message, cancellationToken);
+        await client.SendAsync(message);
         await client.DisconnectAsync(true, cancellationToken);
     }
 }

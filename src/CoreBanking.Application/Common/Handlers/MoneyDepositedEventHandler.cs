@@ -17,7 +17,7 @@ public class MoneyDepositedEventHandler(IEmailService emailService,ILogger<Money
             await emailService.SendAndTrackAsync(
                 account.OwnerEmail,
                 account.OwnerName,
-                "Deposit",
+                "DepositEmail",
                 new DepositEmailModel
                 {
                     FullName = account.OwnerName,

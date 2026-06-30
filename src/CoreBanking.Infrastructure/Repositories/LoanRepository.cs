@@ -64,13 +64,11 @@ public class LoanRepository(BankingDbContext context) : ILoanRepository
     public async Task AddAsync(Loan loan, CancellationToken cancellationToken = default)
     {
         await context.Loans.AddAsync(loan, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(Loan loan, CancellationToken cancellationToken = default)
     {
         context.Loans.Update(loan);
-        await context.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Loan> ApplySorting(IQueryable<Loan> query, LoanSortOrder sortBy)

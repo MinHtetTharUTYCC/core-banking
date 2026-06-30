@@ -1,7 +1,3 @@
-@inherits RazorLight.Templating.RazorTemplateBase
-@using CoreBanking.Application.Models
-@model DepositEmailModel
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +13,7 @@
         .amount { font-size: 28px; font-weight: bold; color: #27ae60; text-align: center; margin: 20px 0; }
         .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 12px; border-top: 1px solid #e0e0e0; }
     </style>
-    <title>@Model.BankName - Money Deposit</title>
+    <title>{{BankName}} - Deposit Confirmed</title>
 </head>
 <body>
     <div class="container">
@@ -25,23 +21,23 @@
             <h1>Deposit Confirmed</h1>
         </div>
         <div class="content">
-            <h2>Hello @Model.FullName,</h2>
-            <p>A deposit has been made to your account.</p>
+            <h2>Hello {{FullName}},</h2>
+            <p>A deposit has been successfully made to your account.</p>
 
             <div class="amount">
-                + @Model.Currency @Model.Amount.ToString("N2")
+                {{Currency}} {{Amount}}
             </div>
 
             <div class="info-box">
-                <strong>Transaction Details:</strong><br />
-                Date: @Model.TransactionDate.ToString("MMMM dd, yyyy HH:mm")<br />
-                New Balance: @Model.Currency @Model.NewBalance.ToString("N2")
+                <strong>Deposit Details:</strong><br />
+                Date: {{TransactionDate}}<br />
+                New Balance: {{Currency}} {{NewBalance}}
             </div>
 
-            <p>If you did not authorize this transaction, please contact our support team immediately.</p>
+            <p>If you have any questions about this deposit, please contact our support team.</p>
         </div>
         <div class="footer">
-            <p>&copy; @DateTime.UtcNow.Year CoreBanking. All rights reserved.</p>
+            <p>&copy; 2025 {{BankName}}. All rights reserved.</p>
             <p>This is an automated message. Please do not reply to this email.</p>
         </div>
     </div>

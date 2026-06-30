@@ -10,6 +10,8 @@ namespace CoreBanking.Infrastructure.Persistence;
 public class BankingDbContext(DbContextOptions<BankingDbContext> options, IDomainEventDispatcher dispatcher)
     : DbContext(options), IApplicationDbContext
 {
+    private int _saveChangesDepth;
+    
     public DbSet<Account> Accounts => Set<Account>();
     
     public DbSet<Transaction> Transactions => Set<Transaction>();
@@ -20,24 +22,39 @@ public class BankingDbContext(DbContextOptions<BankingDbContext> options, IDomai
     
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var entities = ChangeTracker.Entries<BaseEntity>()
-            .Select(e => e.Entity)
-            .Where(e => e.DomainEvents.Count >0)
-            .ToList();
+        if (_saveChangesDepth > 0)
+            return await base.SaveChangesAsync(cancellationToken);
+            
+        _saveChangesDepth++;
+        try
+        {
+            // 1. Snag the entities and their events before writing to database
+            var entities = ChangeTracker.Entries<BaseEntity>()
+                .Select(e => e.Entity)
+                .Where(e => e.DomainEvents.Count > 0)
+                .ToList();
 
-        var domainEvents = entities
-            .SelectMany(e => e.DomainEvents)
-            .ToList();
+            var domainEvents = entities
+                .SelectMany(e => e.DomainEvents)
+                .ToList();
 
-        var result = await base.SaveChangesAsync(cancellationToken);
+            // 2. Clear events from the instances so they don't fire twice
+            foreach (var entity in entities)
+                entity.ClearDomainEvents();
 
-        foreach (var entity in entities)
-            entity.ClearDomainEvents();
+            // 3. Commit EVERYTHING tracked up to this point in a single pass
+            var result = await base.SaveChangesAsync(cancellationToken);
 
-        foreach (var domainEvent in domainEvents)
-            await dispatcher.DispatchAsync(domainEvent, cancellationToken);
+            // 4. Run your domain event dispatching down the line
+            foreach (var domainEvent in domainEvents)
+                await dispatcher.DispatchAsync(domainEvent, cancellationToken);
 
-        return result;
+            return result;
+        }
+        finally
+        {
+            _saveChangesDepth--;
+        }
     }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -3,14 +3,8 @@ using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Domain.Events;
 
-public class MoneyDepositedEvent : DomainEvent
+public class MoneyDepositedEvent(Account account, decimal amount) : DomainEvent
 {
-    public Account Account { get; }
-    public decimal Amount { get; }
-    
-    public MoneyDepositedEvent(Account account, decimal amount)
-    {
-        Account = account;
-        Amount = amount;
-    }
+    public Account Account { get; } = account;
+    public decimal Amount { get; } = amount;
 }

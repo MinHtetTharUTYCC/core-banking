@@ -3,16 +3,9 @@ using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Domain.Events;
 
-public class MoneyTransferredEvent : DomainEvent
+public class MoneyTransferredEvent(Account fromAccount, Account toAccount, decimal amount) : DomainEvent
 {
-    public Account FromAccount { get; }
-    public Account ToAccount { get; }
-    public decimal Amount { get; }
-    
-    public MoneyTransferredEvent(Account fromAccount, Account toAccount, decimal amount)
-    {
-        FromAccount = fromAccount;
-        ToAccount = toAccount;
-        Amount = amount;
-    }
+    public Account FromAccount { get; } = fromAccount;
+    public Account ToAccount { get; } = toAccount;
+    public decimal Amount { get; } = amount;
 }

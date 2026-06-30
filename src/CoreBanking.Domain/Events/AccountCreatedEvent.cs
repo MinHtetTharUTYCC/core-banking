@@ -3,12 +3,7 @@ using CoreBanking.Domain.Entities;
 
 namespace CoreBanking.Domain.Events;
 
-public class AccountCreatedEvent : DomainEvent
+public class AccountCreatedEvent(Account account) : DomainEvent
 {
-    public Account Account { get; }
-    
-    public AccountCreatedEvent(Account account)
-    {
-        Account = account;
-    }
+    public Account Account { get; } = account;
 }

@@ -34,12 +34,10 @@ public class AccountRepository(BankingDbContext context) : IAccountRepository
     public async Task AddAsync(Account account, CancellationToken cancellationToken = default)
     {
         await context.Accounts.AddAsync(account, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
     }
     
     public async Task UpdateAsync(Account account, CancellationToken cancellationToken = default)
     {
         context.Accounts.Update(account);
-        await context.SaveChangesAsync(cancellationToken);
     }
 }

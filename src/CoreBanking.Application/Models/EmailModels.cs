@@ -27,6 +27,7 @@ public class TransactionEmailModelBase
 {
     public string Email { get; set; }
     public string FullName { get; set; } = string.Empty;
+    public string BankName { get; set; } = "CoreBanking";
     public string TransactionId { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
@@ -50,6 +51,7 @@ public class DepositEmailModel
 {
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string BankName { get; set; } = "CoreBanking";
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
     public DateTime TransactionDate { get; set; }
@@ -60,6 +62,7 @@ public class WithdrawEmailModel
 {
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string BankName { get; set; } = "CoreBanking";
     public decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
     public DateTime TransactionDate { get; set; }

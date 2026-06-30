@@ -48,15 +48,28 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBe
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis")
     ?? throw new InvalidOperationException("Redis connection string is not configured. Set ConnectionStrings:Redis in appsettings.");
 
+var redisConfig = ConfigurationOptions.Parse(redisConnectionString);
+redisConfig.AbortOnConnectFail = false;
+redisConfig.ConnectTimeout = 10000;
+redisConfig.SyncTimeout = 10000;
+redisConfig.Ssl = true;
+redisConfig.AbortOnConnectFail = false;
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = redisConnectionString;
+    options.ConfigurationOptions = redisConfig;
     options.InstanceName = "CoreBanking_";
 });
 
 builder.Services.AddSingleton<IDistributedLockFactory>(sp =>
 {
-    var multiplexer = ConnectionMultiplexer.Connect(redisConnectionString);
+    var config = ConfigurationOptions.Parse(redisConnectionString);
+
+    config.Ssl = true;
+    config.AbortOnConnectFail = false;
+    config.ConnectTimeout = 10000;
+    config.SyncTimeout = 10000;
+    var multiplexer = ConnectionMultiplexer.Connect(config);
 
     // RedLock with single instance (only for development!)
     return RedLockFactory.Create(new List<RedLockMultiplexer>

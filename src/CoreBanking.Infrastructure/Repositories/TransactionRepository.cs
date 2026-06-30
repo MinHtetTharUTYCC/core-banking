@@ -58,7 +58,6 @@ public class TransactionRepository(BankingDbContext context) : ITransactionRepos
     public async Task AddAsync(Transaction transaction,CancellationToken cancellationToken)
     {
         await context.Transactions.AddAsync(transaction);
-        await context.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Transaction> ApplySorting(IQueryable<Transaction> query, TransactionSortOrder sortBy)

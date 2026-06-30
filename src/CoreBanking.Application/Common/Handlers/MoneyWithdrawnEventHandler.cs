@@ -18,7 +18,7 @@ public class MoneyWithdrawnEventHandler(IEmailService emailService,
             await emailService.SendAndTrackAsync(
                 account.OwnerEmail,
                 account.OwnerName,
-                "Withdraw",
+                "WithdrawEmail",
                 new WithdrawEmailModel
                 {
                     FullName = account.OwnerName,

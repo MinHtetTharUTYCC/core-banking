@@ -6,9 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="EmailTemplates\*.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="EmailTemplates\*.scriban" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,7 +18,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="RazorLight" Version="2.3.1" />
+    <PackageReference Include="Fluid.Core" Version="2.22.0" />
     <PackageReference Include="RedLock.net" Version="2.3.2" />
   </ItemGroup>
 
@@ -28,6 +26,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
 </Project>
