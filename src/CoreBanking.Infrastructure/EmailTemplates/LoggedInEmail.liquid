@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f7; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #1e8449, #27ae60); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px; color: #333333; line-height: 1.6; }
+        .content h2 { color: #1e8449; margin-top: 0; }
+        .info-box { background: #f8f9fa; border-left: 4px solid #27ae60; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666666; font-size: 12px; border-top: 1px solid #e0e0e0; }
+        .warning {
+            background: #fff8e5;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin-top: 25px;
+            border-radius: 4px;
+        }
+    </style>
+    <title>{{ BankName }} - New Login Detected</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Login Successful</h1>
+        </div>
+
+        <div class="content">
+            <h2>Hello {{ FullName }},</h2>
+
+            <p>Your account was successfully signed in.</p>
+
+            <div class="info-box">
+                <strong>Login Details:</strong><br />
+                Date & Time: {{ LoginDateTime }}<br />
+                Device: {{ Device }}<br />
+                Browser: {{ Browser }}<br />
+                Operating System: {{ OperatingSystem }}<br />
+                IP Address: {{ IpAddress }}<br />
+            </div>
+
+            <div class="warning">
+                <strong>Didn't sign in?</strong><br />
+                If you do not recognize this login, please change your password immediately and contact our support team.
+            </div>
+
+            <p>Thank you for choosing {{ BankName }}.</p>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2026 {{ BankName }}. All rights reserved.</p>
+            <p>This is an automated security notification. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

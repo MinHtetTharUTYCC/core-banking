@@ -5,17 +5,9 @@ using CoreBanking.Application.Common.Models;
 
 namespace CoreBanking.Infrastructure.Identity;
 
-public class IdentityService : IIdentityService
+public class IdentityService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+    : IIdentityService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ApplicationDbContext _context;
-
-    public IdentityService(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
-    {
-        _userManager = userManager;
-        _context = context;
-    }
-
     public async Task<(bool Success, string UserId, string[] Errors)> RegisterAsync(string email, string password, string fullName, string role)
     {
         var user = new ApplicationUser
@@ -27,20 +19,20 @@ public class IdentityService : IIdentityService
             CreatedAt = DateTime.UtcNow
         };
 
-        var result = await _userManager.CreateAsync(user, password);
+        var result = await userManager.CreateAsync(user, password);
 
         if (!result.Succeeded)
             return (false, string.Empty, result.Errors.Select(e => e.Description).ToArray());
 
-        await _userManager.AddToRoleAsync(user, role);
+        await userManager.AddToRoleAsync(user, role);
         return (true, user.Id, []);
     }
 
     public async Task<(bool Success, UserDto? User, string[] Errors)> ValidateCredentialsAsync(string email, string password)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await userManager.FindByEmailAsync(email);
         
-        if (user == null || !await _userManager.CheckPasswordAsync(user, password))
+        if (user == null || !await userManager.CheckPasswordAsync(user, password))
             return (false, null, ["Invalid email or password"]);
 
         return (true, user.ToUserDto(), []);
@@ -48,19 +40,19 @@ public class IdentityService : IIdentityService
 
     public async Task<UserDto?> FindByIdAsync(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
 
         return user?.ToUserDto();
     }
 
     public async Task<IList<string>> GetRolesAsync(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
 
         if(user is null)
             return new List<string>();
 
-        return await _userManager.GetRolesAsync(user);
+        return await userManager.GetRolesAsync(user);
     }
 
     public async Task StoreRefreshTokenAsync(string userId, string refreshToken, CancellationToken cancellationToken = default)
@@ -73,13 +65,13 @@ public class IdentityService : IIdentityService
             Created = DateTime.UtcNow
         };
 
-        _context.RefreshTokens.Add(storedToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.RefreshTokens.Add(storedToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<UserDto?> ValidateRefreshTokenAsync(string refreshToken)
     {
-        var storedToken = await _context.RefreshTokens
+        var storedToken = await context.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken && rt.Expires > DateTime.UtcNow);
 

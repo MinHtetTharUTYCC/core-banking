@@ -68,3 +68,16 @@ public class WithdrawEmailModel
     public DateTime TransactionDate { get; set; }
     public decimal NewBalance { get; set; }
 }
+
+public class LoggedInEmailModel
+{
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string BankName { get; set; } = "CoreBanking";
+    public string Device { get; set; } = string.Empty;
+    public string Browser { get; set; } = string.Empty;
+    public string OperatingSystem { get; set; } = string.Empty;
+    public string IpAddress { get; set; } = string.Empty;
+    public DateTime LoginDateTime { get; set; } = DateTime.UtcNow; 
+    
+}

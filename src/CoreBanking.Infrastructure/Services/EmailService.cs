@@ -70,14 +70,12 @@ public class EmailService(
             await SendViaSmtpAsync(message, cancellationToken);
 
             notification.MarkAsSent();
-            await notificationRepository.UpdateAsync(notification, cancellationToken);
             return true;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send tracked email to {Email}", toEmail);
             notification.MarkAsFailed(ex.Message);
-            await notificationRepository.UpdateAsync(notification, cancellationToken);
             return false;
         }
     }
@@ -87,7 +85,7 @@ public class EmailService(
         var template = TemplateCache.GetOrAdd(templateKey, key =>
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = $"{assembly.GetName().Name}.EmailTemplates.{key}.scriban";
+            var resourceName = $"{assembly.GetName().Name}.EmailTemplates.{key}.liquid";
             using var stream = assembly.GetManifestResourceStream(resourceName)
                 ?? throw new FileNotFoundException($"Email template not found: {resourceName}");
             using var reader = new StreamReader(stream);

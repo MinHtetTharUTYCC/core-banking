@@ -46,6 +46,8 @@ public static class DependencyInjection
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<IRequestInfoService, RequestInfoService>();
 
         return services;
     }
