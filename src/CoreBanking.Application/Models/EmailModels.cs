@@ -2,82 +2,82 @@ namespace CoreBanking.Application.Models;
 
 public class WelcomeEmailModel
 {
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public required string FullName { get; set; }
+    public required string Email { get; set; }
     public string BankName { get; set; } = "CoreBanking";
-    public DateTime RegistrationDate { get; set; }
+    public required DateTime RegistrationDate { get; set; }
 }
 
 public class PasswordResetEmailModel
 {
-    public string FullName { get; set; } = string.Empty;
-    public string ResetLink { get; set; } = string.Empty;
+    public required string FullName { get; set; }
+    public required string ResetLink { get; set; }
     public int ExpiryMinutes { get; set; } = 30;
 }
 
 public class LoanApprovedEmailModel
 {
-    public string FullName { get; set; } = string.Empty;
-    public string LoanNumber { get; set; } = string.Empty;
-    public decimal ApprovedAmount { get; set; }
+    public required string FullName { get; set; }
+    public required string LoanNumber { get; set; }
+    public required decimal ApprovedAmount { get; set; }
     public string Currency { get; set; } = "USD";
 }
 
 public class TransactionEmailModelBase
 {
-    public string Email { get; set; }
-    public string FullName { get; set; } = string.Empty;
+    public required string Email { get; set; }
+    public required string FullName { get; set; }
     public string BankName { get; set; } = "CoreBanking";
-    public string TransactionId { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
+    public required string TransactionId { get; set; }
+    public required decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
-    public DateTime TransactionDate { get; set; }
-    public decimal NewBalance { get; set; }
+    public required DateTime TransactionDate { get; set; }
+    public required decimal NewBalance { get; set; }
 }
 
 public class  TransactionSentEmailModel : TransactionEmailModelBase
 {
-    public string RecipientName { get; set; } = string.Empty;
-    public string RecipientAccountNumberMasked { get; set; } = string.Empty;
+    public required string RecipientName { get; set; }
+    public required string RecipientAccountNumberMasked { get; set; }
 }
 
 public class TransactionReceivedEmailModel: TransactionEmailModelBase
 {
-    public string SenderName { get; set; } = string.Empty;
-    public string SenderAccountNumberMasked { get; set; } = string.Empty;
+    public required string SenderName { get; set; }
+    public required string SenderAccountNumberMasked { get; set; }
 }
 
 public class DepositEmailModel
 {
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public required string FullName { get; set; }
+    public required string Email { get; set; }
     public string BankName { get; set; } = "CoreBanking";
-    public decimal Amount { get; set; }
+    public required decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
-    public DateTime TransactionDate { get; set; }
-    public decimal NewBalance { get; set; }
+    public required DateTime TransactionDate { get; set; }
+    public required decimal NewBalance { get; set; }
 }
 
 public class WithdrawEmailModel
 {
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public required string FullName { get; set; }
+    public required string Email { get; set; }
     public string BankName { get; set; } = "CoreBanking";
-    public decimal Amount { get; set; }
+    public required decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
-    public DateTime TransactionDate { get; set; }
-    public decimal NewBalance { get; set; }
+    public required DateTime TransactionDate { get; set; }
+    public required decimal NewBalance { get; set; }
 }
 
 public class LoggedInEmailModel
 {
-    public string FullName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    public required string FullName { get; set; }
+    public required string Email { get; set; }
     public string BankName { get; set; } = "CoreBanking";
-    public string Device { get; set; } = string.Empty;
-    public string Browser { get; set; } = string.Empty;
-    public string OperatingSystem { get; set; } = string.Empty;
-    public string IpAddress { get; set; } = string.Empty;
-    public DateTime LoginDateTime { get; set; } = DateTime.UtcNow; 
+    public required string Device { get; set; }
+    public required string Browser { get; set; }
+    public required string OperatingSystem { get; set; }
+    public required string IpAddress { get; set; }
+    public required DateTime LoginDateTime { get; set; } = DateTime.UtcNow; 
     
 }

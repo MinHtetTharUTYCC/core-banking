@@ -14,6 +14,8 @@ public class Transaction : BaseEntity
     public TransactionStatus Status { get; private set; }
     public string? Description { get; private set; }
     public string? ReferenceNumber { get; private set; }
+    
+    public string? TransferReferenceNumber { get; private set; }
     public Guid? RelatedAccountId { get; private set; }
     
     public Account Account { get; private set; } = null!;
@@ -28,9 +30,10 @@ public class Transaction : BaseEntity
         Currency currency,
         decimal balanceBefore,
         string? description = null,
-        Guid? relatedAccountId = null)
+        Guid? relatedAccountId = null,
+        string? transferReferenceNumber = null)
     {
-        var transaction = new Transaction
+        return new Transaction
         {
             Id = Guid.NewGuid(),
             AccountId = account.Id,
@@ -41,36 +44,20 @@ public class Transaction : BaseEntity
             BalanceAfter = type == TransactionType.Credit 
                 ? balanceBefore + amount 
                 : balanceBefore - amount,
-            Status = TransactionStatus.Pending,
+            Status = TransactionStatus.Completed,
             Description = description,
             ReferenceNumber = GenerateReferenceNumber(),
             RelatedAccountId = relatedAccountId,
+            TransferReferenceNumber = transferReferenceNumber,
             CreatedAt = DateTime.UtcNow
-        };
-        
-        return transaction;
-    }
-    
-    public void StartProcessing()
-    {
-        Status = TransactionStatus.Processing;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    public void Complete()
-    {
-        Status = TransactionStatus.Completed;
-        UpdatedAt = DateTime.UtcNow;
-    }
-    
-    public void Fail()
-    {
-        Status = TransactionStatus.Failed;
-        UpdatedAt = DateTime.UtcNow;
+        }; 
     }
     
     public void Reverse()
     {
+        if (Status != TransactionStatus.Completed)
+            throw new InvalidOperationException("Only completed transactions can be reversed");
+        
         Status = TransactionStatus.Reversed;
         UpdatedAt = DateTime.UtcNow;
     }

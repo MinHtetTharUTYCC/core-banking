@@ -49,7 +49,7 @@ public class Account : BaseEntity
         UpdatedAt = DateTime.UtcNow;
     }
     
-    public void Deposit(decimal amount)
+    public void Deposit(decimal amount,string? description = null)
     {
         if (Status != AccountStatus.Active)
             throw new InvalidOperationException("Account must be active to deposit");
@@ -57,21 +57,39 @@ public class Account : BaseEntity
         if (amount <= 0)
             throw new ArgumentException("Deposit amount must be positive");
         
-        Credit(amount);
+        var balanceBefore = Balance.Amount;
+        var depositMoney = new Money(amount, Balance.Currency);
+        Balance = Balance.Add(depositMoney);
+        UpdatedAt = DateTime.UtcNow;
+        
+        var transaction = Transaction.Create(
+            this,
+            TransactionType.Credit,
+            amount,Balance.Currency,
+            balanceBefore,
+            description ?? "Deposit");
+        _transactions.Add(transaction);
+        
         AddDomainEvent(new MoneyDepositedEvent(this, amount));
     }
 
-    public void Withdraw(decimal amount)
+    public void Withdraw(decimal amount,string? description = null)
     {
         if (Status != AccountStatus.Active)
             throw new InvalidOperationException("Account must be active to withdraw");
-        
         if (amount <= 0)
             throw new ArgumentException("Withdrawal amount must be positive");
+        if(Balance.Amount < amount)
+            throw new InvalidOperationException("Insufficient funds");
         
+        var balanceBefore = Balance.Amount;
         var withdrawalMoney = new Money(amount, Balance.Currency);
         Balance = Balance.Subtract(withdrawalMoney);
         UpdatedAt = DateTime.UtcNow;
+        
+        var transaction = Transaction.Create(this, TransactionType.Debit, amount,
+            Balance.Currency, balanceBefore, description ?? "Withdrawal");
+        _transactions.Add(transaction);
         
         AddDomainEvent(new MoneyWithdrawnEvent(this, amount));
     }
@@ -80,26 +98,32 @@ public class Account : BaseEntity
     {
         if (Status != AccountStatus.Active)
             throw new InvalidOperationException("Source account must be active");
-        
         if (toAccount.Status != AccountStatus.Active)
             throw new InvalidOperationException("Destination account must be active");
-        
         if (Balance.Currency != toAccount.Balance.Currency)
             throw new InvalidOperationException("Cannot transfer between different currencies");
         
-        Withdraw(amount);
-        toAccount.Credit(amount);
+        var fromBalanceBefore = Balance.Amount;
+        var toBalanceBefore = toAccount.Balance.Amount;
         
-        AddDomainEvent(new MoneyTransferredEvent(this, toAccount, amount));
-    }
-    
-    private void Credit(decimal amount)
-    {
-        var creditMoney = new Money(amount, Balance.Currency);
-        Balance = Balance.Add(creditMoney);
+        Balance = Balance.Subtract(new Money(amount, Balance.Currency));
+        toAccount.Balance = toAccount.Balance.Add(new Money(amount, Balance.Currency));
         UpdatedAt = DateTime.UtcNow;
+        toAccount.UpdatedAt = DateTime.UtcNow;
+        
+        var transferReferenceNumber = Guid.NewGuid().ToString();
+        
+        var debit = Transaction.Create(this, TransactionType.Debit, amount, Balance.Currency,
+            fromBalanceBefore, $"Transfer to {toAccount.AccountNumber.Value}",toAccount.Id, transferReferenceNumber);
+        var credit = Transaction.Create(toAccount, TransactionType.Credit, amount, Balance.Currency,
+            toBalanceBefore,
+            $"Transfer from {AccountNumber.Value}",this.Id, transferReferenceNumber);
+        
+        _transactions.Add(debit);
+        toAccount._transactions.Add(credit);
+        
+        AddDomainEvent(new MoneyTransferredEvent(this, toAccount, amount, transferReferenceNumber));
     }
-
 }
 
 public enum AccountStatus

@@ -6,67 +6,24 @@ using CoreBanking.Domain.Enums;
 
 namespace CoreBanking.Application.Accounts.Commands;
 
-public class TransferCommandHandler(IAccountRepository repository,
-ITransactionRepository transactionRepository) : IRequestHandler<TransferCommand, Unit>
+public class TransferCommandHandler(IAccountRepository repository) : IRequestHandler<TransferCommand, Unit>
 {
 
     public async Task<Unit> Handle(TransferCommand request, CancellationToken cancellationToken)
     {
-        var fromAccount = await repository.GetByIdAsync(request.FromAccountId);
-
-        if (fromAccount == null)
-            throw new KeyNotFoundException("Account not found");
+        var fromAccount = await repository.GetByIdAsync(request.FromAccountId) 
+                          ?? throw new KeyNotFoundException("Account not found");
 
         if (fromAccount.OwnerEmail != request.OwnerEmail)
             throw new BadRequestException("You are not authorized to transfer from this account");
 
-        var toAccount = await repository.GetByIdAsync(request.ToAccountId);
-        if (toAccount == null)
-            throw new KeyNotFoundException("Account to transfer to not found");
+        var toAccount = await repository.GetByIdAsync(request.ToAccountId) 
+                        ?? throw new KeyNotFoundException("Account to transfer to not found");
 
-        var fromBalanceBefore = fromAccount.Balance.Amount;
-        var toBalanceBefore = toAccount.Balance.Amount;
-
-        var debitTransaction = Transaction.Create(
-            account: fromAccount,
-            type: TransactionType.Debit,
-            amount: request.Amount,
-            currency: fromAccount.Balance.Currency,
-            balanceBefore: fromBalanceBefore,
-            description: $"Transfer to {toAccount.AccountNumber.Value}",
-            relatedAccountId: toAccount.Id);
-
-        var creditTransaction = Transaction.Create(
-            account: toAccount,
-            type: TransactionType.Credit,
-            amount: request.Amount,
-            currency: toAccount.Balance.Currency,
-            balanceBefore: toBalanceBefore,
-            description: $"Transfer from {fromAccount.AccountNumber.Value}",
-            relatedAccountId: fromAccount.Id);
-
-        await transactionRepository.AddAsync(debitTransaction, cancellationToken);
-        await transactionRepository.AddAsync(creditTransaction, cancellationToken);
-
-        try
-        {
-            debitTransaction.StartProcessing();
-            creditTransaction.StartProcessing();
-
-            fromAccount.Transfer(toAccount, request.Amount);
-
-            debitTransaction.Complete();
-            creditTransaction.Complete();
-        }
-        catch (Exception)
-        {
-            debitTransaction.Fail();
-            creditTransaction.Fail();
-            throw;
-        }
-
-        await repository.UpdateAsync(fromAccount);
-        await repository.UpdateAsync(toAccount);
+        fromAccount.Transfer(toAccount, request.Amount);
+        
+        await repository.UpdateAsync(fromAccount, cancellationToken); 
+        await repository.UpdateAsync(toAccount, cancellationToken);
 
         return Unit.Value;
     }
