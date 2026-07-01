@@ -28,7 +28,6 @@ public class TransactionEmailModelBase
     public required string Email { get; set; }
     public required string FullName { get; set; }
     public string BankName { get; set; } = "CoreBanking";
-    public required string TransactionId { get; set; }
     public required decimal Amount { get; set; }
     public string Currency { get; set; } = "USD";
     public required DateTime TransactionDate { get; set; }
@@ -39,12 +38,17 @@ public class  TransactionSentEmailModel : TransactionEmailModelBase
 {
     public required string RecipientName { get; set; }
     public required string RecipientAccountNumberMasked { get; set; }
+    
+    public required string TransferReferenceNumber { get; set; }
 }
 
 public class TransactionReceivedEmailModel: TransactionEmailModelBase
 {
     public required string SenderName { get; set; }
     public required string SenderAccountNumberMasked { get; set; }
+    
+    public required string TransferReferenceNumber { get; set; }
+
 }
 
 public class DepositEmailModel
